@@ -1,0 +1,10 @@
+.row {
+        height: 100%;
+        margin: 0px
+}
+tr > th {
+    padding-left: 8px !important;
+}
+tfoot {
+	display: none;
+}
