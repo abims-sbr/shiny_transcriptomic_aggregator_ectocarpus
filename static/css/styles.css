@@ -1,10 +1,17 @@
 .row {
         height: 100%;
-        margin: 0px
+        margin: 0px;
+}
+.progress {
+	margin-bottom: 5px !important;
 }
 tr > th {
     padding-left: 8px !important;
 }
 tfoot {
 	display: none;
+}
+hr {
+	margin-top: 5px !important;
+	margin-bottom: 10px !important;
 }

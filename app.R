@@ -10,9 +10,9 @@ library(shiny)
 library(DT)
 
 # Import files
-tpms<-read.table("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
-genes_data<-read.table("test-data/genes_data_test.csv", sep="\t", header=TRUE, quote="")
-agg_data<-merge(tpms, genes_data, by="gene_id")
+tpms_data_table<-read.table("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
+genes_data_table<-read.table("test-data/genes_data_test.csv", sep="\t", header=TRUE, quote="")
+agg_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
 
 samples_data_table<-read.table("test-data/samples_data_test.csv", sep="\t", header=TRUE, quote="")
 
@@ -20,64 +20,100 @@ samples_data_table<-read.table("test-data/samples_data_test.csv", sep="\t", head
 ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
 	fluidRow(
-		column(4,
-			h5(strong("Sample Id :")),
-			selectInput(
-				inputId = "sample_id",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$sample_id))),
-				#multiple=TRUE,
-				width = '200px'
-			)
+		column(2,
+	      	fileInput(
+	      		inputId = "tpms_file", 
+	      		label = "Import TPMs File (.csv)",
+	            multiple = FALSE,
+	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+	        ),
+	      	fileInput(
+	      		inputId = "genes_data_file", 
+	      		label = "Import Genes Data File (.csv)",
+	            multiple = FALSE,
+	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+	        ),
+	      	fileInput(
+	      		inputId = "sample_data_file", 
+	      		label = "Import Samples Data File (.csv)",
+	            multiple = FALSE,
+	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+	        )	        
 		),
-		column(4,
-			h5(strong("Strain :")),
-			selectInput(
-				inputId = "strain",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$strain))),
-				width = '200px'
-			)
+		column(2,
+			checkboxInput("header", "Header", TRUE),
+			radioButtons("sep", "Separator",
+                choices = c(Comma = ",", Semicolon = ";", Tab = "\t"),
+                selected = "\t"
+            ),
+		    radioButtons("quote", "Quote",
+		        choices = c(None = "", "Double Quote" = '"', "Single Quote" = "'"),
+		        selected = '"'
+		    )
 		),
-		column(4,
-			h5(strong("Phenotype :")),
-			selectInput(
-				inputId = "phenotype",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$phenotype))),
-				width = '200px'
+		column(8,
+			fluidRow(
+				column(4,
+					h5(strong("Sample Id :")),
+					selectInput(
+						inputId = "sample_id",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$sample_id))),
+						#multiple=TRUE,
+						width = '200px'
+					)
+				),
+				column(4,
+					h5(strong("Strain :")),
+					selectInput(
+						inputId = "strain",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$strain))),
+						width = '200px'
+					)
+				),
+				column(4,
+					h5(strong("Phenotype :")),
+					selectInput(
+						inputId = "phenotype",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$phenotype))),
+						width = '200px'
+					)
+				)
+			),
+			fluidRow(
+				column(4,
+					h5(strong("Sex :")),
+					selectInput(
+						inputId = "sex",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$sex))),
+						width = '200px'
+					)
+				),
+				column(4,
+					h5(strong("Stage :")),
+					selectInput(
+						inputId = "stage",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$stage))),
+						width = '200px'
+					)
+				),
+				column(4,
+					h5(strong("Generation :")),
+					selectInput(
+						inputId = "generation",
+						label = NULL,
+						choices = c("All", unique(as.character(samples_data_table$generation))),
+						width = '200px'
+					)
+				)
 			)
 		)
 	),
-	fluidRow(
-		column(4,
-			h5(strong("Sex :")),
-			selectInput(
-				inputId = "sex",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$sex))),
-				width = '200px'
-			)
-		),
-		column(4,
-			h5(strong("Stage :")),
-			selectInput(
-				inputId = "stage",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$stage))),
-				width = '200px'
-			)
-		),
-		column(4,
-			h5(strong("Generation :")),
-			selectInput(
-				inputId = "generation",
-				label = NULL,
-				choices = c("All", unique(as.character(samples_data_table$generation))),
-				width = '200px'
-			)
-		)
-	),
+	tags$hr(),
 	fluidRow(
 		dataTableOutput('table')
 	)
@@ -87,6 +123,36 @@ ui <- bootstrapPage(
 server <- function(input, output){
 	output$table <- renderDataTable(
 		{
+			# Import file via fileInput
+			if(FALSE){
+				req(input$tpms_file)
+				req(input$genes_data_file)
+				req(input$sample_data_file)
+
+				tpms_data_table <- read.csv(
+					input$tpms_file$datapath,
+	             	header = input$header,
+	             	sep = input$sep,
+	             	quote = input$quote
+	            )
+
+	            genes_data_table <- read.csv(
+					input$genes_data_file$datapath,
+	             	header = input$header,
+	             	sep = input$sep,
+	             	quote = input$quote
+	            )
+
+	            agg_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
+
+	            sample_data_table <- read.csv(
+					input$genes_data_file$datapath,
+	             	header = input$header,
+	             	sep = input$sep,
+	             	quote = input$quote
+	            )
+        	}
+
 			samples_data<-samples_data_table
 			data<-agg_data
 			if (input$sample_id != "All") {
