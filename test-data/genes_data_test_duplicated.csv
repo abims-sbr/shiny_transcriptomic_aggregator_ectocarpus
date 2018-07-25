@@ -87,7 +87,8 @@ Sp-0850	chr0	1801
 Sp-0860	chr0	1087	
 Sp-0870	chr0	2459	
 Sp-0880	chr0	472	
-Sp-0890	chr0	2335	SBG-male, GBG-gametophyte
+Sp-0890	chr0	2335	SBG-male
+Sp-0890	chr0	2335	GBG-gametophyte
 Sp-0900	chr0	566	SBG-female
 Sp-0910	chr0	1262	
 Sp-0920	chr0	303	

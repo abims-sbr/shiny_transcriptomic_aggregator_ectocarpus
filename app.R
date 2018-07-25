@@ -9,12 +9,17 @@ install.packages(c('shiny'))
 library(shiny)
 library(DT)
 
-# Import files
-tpms_data_table<-read.table("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
-genes_data_table<-read.table("test-data/genes_data_test.csv", sep="\t", header=TRUE, quote="")
-agg_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
+source("lib/merge_duplicated_data.R")
 
-samples_data_table<-read.table("test-data/samples_data_test.csv", sep="\t", header=TRUE, quote="")
+# Import files
+tpms_data_table<-read.csv("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
+
+#genes_data_file<-read.csv("test-data/genes_data_test.csv", sep="\t", header=TRUE, quote="", stringsAsFactors = FALSE)
+genes_data_file<-read.csv("test-data/genes_data_test_duplicated.csv", sep="\t", header=TRUE, quote="", stringsAsFactors = FALSE)
+genes_data_table<-merge_duplicated_data(genes_data_file)
+
+samples_data_table<-read.csv("test-data/samples_data_test.csv", sep="\t", header=TRUE, quote="")
+
 
 # User interface
 ui <- bootstrapPage(
@@ -110,6 +115,9 @@ ui <- bootstrapPage(
 						width = '200px'
 					)
 				)
+			),
+			fluidRow(
+				uiOutput("sampleId")
 			)
 		)
 	),
@@ -119,8 +127,10 @@ ui <- bootstrapPage(
 	)
 )
 
+
 # Server function
 server <- function(input, output){
+
 	output$table <- renderDataTable(
 		{
 			# Import file via fileInput
@@ -143,7 +153,7 @@ server <- function(input, output){
 	             	quote = input$quote
 	            )
 
-	            agg_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
+	            merged_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
 
 	            sample_data_table <- read.csv(
 					input$genes_data_file$datapath,
@@ -154,7 +164,7 @@ server <- function(input, output){
         	}
 
 			samples_data<-samples_data_table
-			data<-agg_data
+			tpms_data<-tpms_data_table
 			if (input$sample_id != "All") {
 		    	samples_data <- samples_data[samples_data$sample_id == input$sample_id,]
 		    }
@@ -173,14 +183,16 @@ server <- function(input, output){
 		    if (input$generation != "All") {
 		    	samples_data <- samples_data[samples_data$generation == input$generation,]
 		    }
-		    filtered_data <- data[colnames(data) %in% samples_data$sample_id]
-		    gene_id<-data$gene_id
-		    cbind(gene_id, filtered_data)
+		    gene_id<-tpms_data$gene_id
+		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data$sample_id])
+		    merged_data <- merge(genes_data_table, filtered_tpms_data, by="gene_id")
+		    merged_data
 		},
+		rownames = FALSE,
 	    extensions = c("Buttons", "FixedHeader"),
         options = list(
         	dom = 'Blfrtip',
-        	order = list(1, 'asc'),
+        	order = list(0, 'asc'),
         	fixedHeader = TRUE,
         	pageLength = 25,
   			lengthMenu = c(10, 25, 50, 100, 200),
