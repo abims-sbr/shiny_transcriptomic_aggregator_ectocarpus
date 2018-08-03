@@ -202,3 +202,35 @@ server <- function(input, output){
 }
 
 shinyApp(ui, server)
+
+if(FALSE){
+	# Fonction pour remplacer les "," par des "." pour les valeurs de tpms
+	substi<-function(x) {gsub("[,]",".",x) } 
+	
+	data_for_boxplot<-merged_data[,-c(2,3)]
+	filtered_data<-melt(data_for_boxplot, id=c("gene_id","gene_group"))
+	
+	## BOX PLOT
+	# Données et couleur
+	ggplot(data = filtered_data, aes(x=gene_group, y=as.numeric(substi(value)), fill=gene_group)) #color=gene_group)) 
+	# Boîtes et points
+	+ geom_boxplot(aes(x=gene_group), outlier.colour="black", outlier.size=1)
+	# Séparation en plusieurs graphes
+	+ facet_wrap( ~ variable, scales="free") 
+	# Palette de couleur
+	+ scale_color_brewer(palette="Set1")
+
+	## DOT PLOT
+	ggplot(data = filtered_data, aes(x=gene_group, y=as.numeric(substi(value)), fill=gene_group))
+	+ geom_dotplot(binaxis='y', stackdir='center', stackratio=1.5, dotsize=1.2)
+	+ facet_wrap( ~ variable, scales="free") + scale_color_brewer(palette="Set1")
+
+	## HEATMAP
+	# Remplacer les , par des . dans le fichier tpms
+	melted_cormat<-melt(round(cor(tpms_data_table[,-c(1)]),2))
+	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) 
+	# Séparateur de case
+	+ geom_tile(color="white")
+	#Gradient de couleur 
+	+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
+}
