@@ -3,23 +3,17 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny'))
+install.packages(c('shiny', 'shinyBS'))
 
 # Load packages
 library(shiny)
+library(shinyBS)
 library(DT)
+library(Hmisc)
 
+# Load functions
 source("lib/merge_duplicated_data.R")
 source("lib/read_tables.R")
-
-# Import files
-tpms_data_table<-read.csv("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
-
-#genes_data_file<-read.csv("test-data/genes_data_test.csv", sep="\t", header=TRUE, quote="", stringsAsFactors = FALSE)
-genes_data_file<-read.csv("test-data/genes_data_test_duplicated.csv", sep="\t", header=TRUE, quote="", stringsAsFactors = FALSE)
-genes_data_table<-merge_duplicated_data(genes_data_file)
-
-samples_data_table<-read.csv("test-data/samples_data_test.csv", sep="\t", header=TRUE, quote="")
 
 
 # User interface
@@ -27,52 +21,37 @@ ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
 	br(),
 	fluidRow(
+		# Import Files Panel
 		column(2,
 			wellPanel(
-		      	fileInput(
-		      		inputId = "tpms_file", 
-		      		label = "Import TPMs File (.csv)",
-		            multiple = FALSE,
-		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-		        ),
-		      	fileInput(
-		      		inputId = "genes_data_file", 
-		      		label = "Import Genes Data File (.csv)",
-		            multiple = FALSE,
-		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-		        ),
-		      	fileInput(
-		      		inputId = "sample_data_file", 
-		      		label = "Import Samples Data File (.csv)",
-		            multiple = FALSE,
-		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-		        )
+			 	fileInput(
+			   		inputId = "tpms_file", 
+			   		label = "Import TPMs File (.csv)",
+			        multiple = FALSE,
+			        accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+			    ),
+			   	fileInput(
+			   		inputId = "genes_data_file", 
+			   		label = "Import Genes Data File (.csv)",
+			        multiple = FALSE,
+			        accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+			    ),
+			  	fileInput(
+			   		inputId = "samples_data_file", 
+			   		label = "Import Samples Data File (.csv)",
+			        multiple = FALSE,
+			        accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+			    )
 		    )
 		),
+		# Filters Panels
 		column(10,
-			wellPanel(
-				h3("Samples Metadata Filters"),
-				fluidRow(
-			      	lapply(1:ncol(samples_data_table), function(i) {
-			      		column(3,
-							selectInput(
-			        			inputId = colnames(samples_data_table)[i],
-			        			label = paste0(colnames(samples_data_table)[i], " :"),
-			                	choices = c("All", unique(samples_data_table[i])),
-			                	width = "200px"
-			            	)
-			      		)
-			      	})
-				)
-			)
-			#selectInput(
-			#	inputId = colnames(genes_data_file)[i],  #paste0('a', i), 
-			#	label = colnames(genes_data_file)[i], #paste0('SelectA', i),
-			#	choices = unique(genes_data_file[i]) #sample(LETTERS, 5)
-			#)
+			uiOutput("samples_filters"),
+			uiOutput("genes_filters")
 		)
 	),
 	tags$hr(),
+	# DataTable
 	fluidRow(
 		dataTableOutput('table')
 	)
@@ -82,50 +61,134 @@ ui <- bootstrapPage(
 # Server function
 server <- function(input, output, session){
 
+	# Import files
+	samples_data_table <- eventReactive(input$samples_data_file, {
+        samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
+    })
+
+    genes_data_table <- eventReactive(input$genes_data_file, {
+        genes_data_file <- getDataFrameFromFile(input$genes_data_file$datapath)
+        genes_data_table <- merge_duplicated_data(genes_data_file)
+    })
+
+    tpms_data_table <- eventReactive(input$tpms_file, {
+        tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
+    })
+
+	# Generate UI Samples Filters
+	output$samples_filters <- renderUI({
+		samples_data_table <- samples_data_table()
+		tagList(
+			bsCollapsePanel(
+				title = h3("Samples Metadata Filters"),
+				fluidRow(
+			      	lapply(1:ncol(samples_data_table), function(i) {
+			      		column(3,
+							selectInput(
+			        			inputId = colnames(samples_data_table)[i],
+			        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data_table)[i])), " :"),
+			                	choices = c("All", sort(unique(samples_data_table[,i]))),
+			                	width = "200px",
+			                	selected = "All"
+			            	)
+			      		)
+			      	})
+				),
+				fluidRow(
+					column(11),
+					column(1,
+						actionButton(
+							inputId = "reset_samples_values",
+							label = "Reset" 
+						)
+					)
+				)				
+			)
+		)
+	})
+
+	# Generate UI Genes Filters
+	output$genes_filters <- renderUI({
+		genes_data_table <- genes_data_table()
+		tagList(
+			bsCollapsePanel(
+				title = h3("Genes Metadata Filters"),
+				fluidRow(
+					lapply(1:ncol(genes_data_table), function(i) {
+						column(3,
+							selectInput(
+			        			inputId = colnames(genes_data_table)[i],
+			        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
+			                	choices = c("All", sort(unique(genes_data_table[,i]))),
+			                	width = "200px",
+			                	selected = "All"
+							)
+						)
+					})
+				),
+				fluidRow(
+					column(11),
+					column(1,
+						actionButton(
+							inputId = "reset_genes_values",
+							label = "Reset" 
+						)
+					)
+				)
+			)
+		)
+	})
+
+	# Reset filters values
+	observeEvent(input$reset_samples_values, {
+		samples_data_table <- samples_data_table()
+		for ( i in 1:ncol(samples_data_table)) {
+        	updateSelectInput(
+        		session = session, 
+        		inputId = colnames(samples_data_table)[i],
+        		selected = "All"
+        	)
+		}
+	})
+	observeEvent(input$reset_genes_values, {
+		genes_data_table <- genes_data_table()
+		for ( i in 1:ncol(genes_data_table)) {
+        	updateSelectInput(
+        		session = session, 
+        		inputId = colnames(genes_data_table)[i],
+        		selected = "All"
+        	)
+		}
+  	})
+
+	# DataTable
 	output$table <- renderDataTable(
 		{
-			# Import file via fileInput
-			if(FALSE){
-				req(input$tpms_file)
-				req(input$genes_data_file)
-				req(input$sample_data_file)
+        	samples_data <- samples_data_table()
+			genes_data_table <- genes_data_table()
+			tpms_data <- tpms_data_table()
 
-				tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
-				#tpms_data_table <- read.csv(
-				#	input$tpms_file$datapath,
-	            # 	header = TRUE,
-	            # 	sep = input$sep
-	            #)
-
-	            genes_data_table <- getDataFrameFromFile(input$genes_data_file$datapath)
-	            #genes_data_table <- read.csv(
-				#	input$genes_data_file$datapath,
-	            # 	header = TRUE,
-	            # 	sep = input$sep
-	            #)
-
-	            merged_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
-
-	            sample_data_table <- getDataFrameFromFile(input$sample_data_file$datapath)
-	            #sample_data_table <- read.csv(
-				#	input$sample_data_file$datapath,
-	            # 	header = TRUE,
-	            # 	sep = input$sep
-	            #)
-        	}
-
-			samples_data <- samples_data_table
-			tpms_data <- tpms_data_table
-
+			# Apply filters
 			for ( i in 1:ncol(samples_data)) {
         		if (input[[colnames(samples_data)[i]]] != "All") {
 				    samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
 				}
 			}
 
-		    gene_id<-tpms_data$gene_id
-		    # Supposing id is the first column
-		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]])
+			# Update other filters values
+			for ( j in 1:ncol(samples_data)) {
+				if ( input[[colnames(samples_data)[j]]] == "All") {
+				    updateSelectInput(
+				       	session = session, 
+				       	inputId = colnames(samples_data)[j],
+				       	choices = c("All", unique(samples_data[,j])),
+				       	selected = "All"
+		    		)
+				}
+	    	}
+
+		    gene_id <- tpms_data[1] # Supposing gene_id is the 1st column
+		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]]) # Supposing sample_id is the 1st column
 		    merged_data <- merge(genes_data_table, filtered_tpms_data, by="gene_id")
 		    merged_data
 		},
@@ -143,6 +206,7 @@ server <- function(input, output, session){
 }
 
 shinyApp(ui, server)
+
 
 if(FALSE){
 	# Fonction pour remplacer les "," par des "." pour les valeurs de tpms
