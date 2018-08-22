@@ -10,6 +10,7 @@ library(shiny)
 library(DT)
 
 source("lib/merge_duplicated_data.R")
+source("lib/read_tables.R")
 
 # Import files
 tpms_data_table<-read.csv("test-data/TPMs-1_test.csv", sep="\t", header=TRUE, quote="")
@@ -24,101 +25,51 @@ samples_data_table<-read.csv("test-data/samples_data_test.csv", sep="\t", header
 # User interface
 ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
+	br(),
 	fluidRow(
 		column(2,
-	      	fileInput(
-	      		inputId = "tpms_file", 
-	      		label = "Import TPMs File (.csv)",
-	            multiple = FALSE,
-	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-	        ),
-	      	fileInput(
-	      		inputId = "genes_data_file", 
-	      		label = "Import Genes Data File (.csv)",
-	            multiple = FALSE,
-	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-	        ),
-	      	fileInput(
-	      		inputId = "sample_data_file", 
-	      		label = "Import Samples Data File (.csv)",
-	            multiple = FALSE,
-	            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
-	        )	        
-		),
-		column(2,
-			checkboxInput("header", "Header", TRUE),
-			radioButtons("sep", "Separator",
-                choices = c(Comma = ",", Semicolon = ";", Tab = "\t"),
-                selected = "\t"
-            ),
-		    radioButtons("quote", "Quote",
-		        choices = c(None = "", "Double Quote" = '"', "Single Quote" = "'"),
-		        selected = '"'
+			wellPanel(
+		      	fileInput(
+		      		inputId = "tpms_file", 
+		      		label = "Import TPMs File (.csv)",
+		            multiple = FALSE,
+		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+		        ),
+		      	fileInput(
+		      		inputId = "genes_data_file", 
+		      		label = "Import Genes Data File (.csv)",
+		            multiple = FALSE,
+		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+		        ),
+		      	fileInput(
+		      		inputId = "sample_data_file", 
+		      		label = "Import Samples Data File (.csv)",
+		            multiple = FALSE,
+		            accept = c("text/csv","text/comma-separated-values,text/plain",".csv")
+		        )
 		    )
 		),
-		column(8,
-			fluidRow(
-				column(4,
-					h5(strong("Sample Id :")),
-					selectInput(
-						inputId = "sample_id",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$sample_id))),
-						#multiple=TRUE,
-						width = '200px'
-					)
-				),
-				column(4,
-					h5(strong("Strain :")),
-					selectInput(
-						inputId = "strain",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$strain))),
-						width = '200px'
-					)
-				),
-				column(4,
-					h5(strong("Phenotype :")),
-					selectInput(
-						inputId = "phenotype",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$phenotype))),
-						width = '200px'
-					)
+		column(10,
+			wellPanel(
+				h3("Samples Metadata Filters"),
+				fluidRow(
+			      	lapply(1:ncol(samples_data_table), function(i) {
+			      		column(3,
+							selectInput(
+			        			inputId = colnames(samples_data_table)[i],
+			        			label = paste0(colnames(samples_data_table)[i], " :"),
+			                	choices = c("All", unique(samples_data_table[i])),
+			                	width = "200px"
+			            	)
+			      		)
+			      	})
 				)
-			),
-			fluidRow(
-				column(4,
-					h5(strong("Sex :")),
-					selectInput(
-						inputId = "sex",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$sex))),
-						width = '200px'
-					)
-				),
-				column(4,
-					h5(strong("Stage :")),
-					selectInput(
-						inputId = "stage",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$stage))),
-						width = '200px'
-					)
-				),
-				column(4,
-					h5(strong("Generation :")),
-					selectInput(
-						inputId = "generation",
-						label = NULL,
-						choices = c("All", unique(as.character(samples_data_table$generation))),
-						width = '200px'
-					)
-				)
-			),
-			fluidRow(
-				uiOutput("sampleId")
 			)
+			#selectInput(
+			#	inputId = colnames(genes_data_file)[i],  #paste0('a', i), 
+			#	label = colnames(genes_data_file)[i], #paste0('SelectA', i),
+			#	choices = unique(genes_data_file[i]) #sample(LETTERS, 5)
+			#)
 		)
 	),
 	tags$hr(),
@@ -129,7 +80,7 @@ ui <- bootstrapPage(
 
 
 # Server function
-server <- function(input, output){
+server <- function(input, output, session){
 
 	output$table <- renderDataTable(
 		{
@@ -139,52 +90,42 @@ server <- function(input, output){
 				req(input$genes_data_file)
 				req(input$sample_data_file)
 
-				tpms_data_table <- read.csv(
-					input$tpms_file$datapath,
-	             	header = input$header,
-	             	sep = input$sep,
-	             	quote = input$quote
-	            )
+				tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
+				#tpms_data_table <- read.csv(
+				#	input$tpms_file$datapath,
+	            # 	header = TRUE,
+	            # 	sep = input$sep
+	            #)
 
-	            genes_data_table <- read.csv(
-					input$genes_data_file$datapath,
-	             	header = input$header,
-	             	sep = input$sep,
-	             	quote = input$quote
-	            )
+	            genes_data_table <- getDataFrameFromFile(input$genes_data_file$datapath)
+	            #genes_data_table <- read.csv(
+				#	input$genes_data_file$datapath,
+	            # 	header = TRUE,
+	            # 	sep = input$sep
+	            #)
 
 	            merged_data<-merge(tpms_data_table, genes_data_table, by="gene_id")
 
-	            sample_data_table <- read.csv(
-					input$genes_data_file$datapath,
-	             	header = input$header,
-	             	sep = input$sep,
-	             	quote = input$quote
-	            )
+	            sample_data_table <- getDataFrameFromFile(input$sample_data_file$datapath)
+	            #sample_data_table <- read.csv(
+				#	input$sample_data_file$datapath,
+	            # 	header = TRUE,
+	            # 	sep = input$sep
+	            #)
         	}
 
-			samples_data<-samples_data_table
-			tpms_data<-tpms_data_table
-			if (input$sample_id != "All") {
-		    	samples_data <- samples_data[samples_data$sample_id == input$sample_id,]
-		    }
-			if (input$strain != "All") {
-		    	samples_data <- samples_data[samples_data$strain == input$strain,]
-		    }
-			if (input$phenotype != "All") {
-		    	samples_data <- samples_data[samples_data$phenotype == input$phenotype,]
-		    }
-		    if (input$sex != "All") {
-		    	samples_data <- samples_data[samples_data$sex == input$sex,]
-		    }
-		    if (input$stage != "All") {
-		    	samples_data <- samples_data[samples_data$stage == input$stage,]
-		    }
-		    if (input$generation != "All") {
-		    	samples_data <- samples_data[samples_data$generation == input$generation,]
-		    }
+			samples_data <- samples_data_table
+			tpms_data <- tpms_data_table
+
+			for ( i in 1:ncol(samples_data)) {
+        		if (input[[colnames(samples_data)[i]]] != "All") {
+				    samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+				}
+			}
+
 		    gene_id<-tpms_data$gene_id
-		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data$sample_id])
+		    # Supposing id is the first column
+		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]])
 		    merged_data <- merge(genes_data_table, filtered_tpms_data, by="gene_id")
 		    merged_data
 		},
@@ -226,11 +167,20 @@ if(FALSE){
 	+ facet_wrap( ~ variable, scales="free") + scale_color_brewer(palette="Set1")
 
 	## HEATMAP
+	reorder_cormat <- function(cormat){
+		# Utiliser la corrélation entre les variables comme mesure de distance
+		dd <- as.dist((1-cormat)/2)
+		hc <- hclust(dd)
+		cormat <-cormat[hc$order, hc$order]
+	}
 	# Remplacer les , par des . dans le fichier tpms
-	melted_cormat<-melt(round(cor(tpms_data_table[,-c(1)]),2))
-	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) 
+	cormat <- round(cor(tpms_data_table[,-c(1)]),2)
+	reordered_cormat <- reorder_cormat(cormat)
+	melted_cormat<- melt(reordered_cormat)
+	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) #+ geom_tile(color="white") + scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
 	# Séparateur de case
 	+ geom_tile(color="white")
 	#Gradient de couleur 
 	+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
+
 }
