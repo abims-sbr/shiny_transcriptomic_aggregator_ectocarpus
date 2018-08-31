@@ -3,12 +3,13 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinyBS'))
+install.packages(c('shiny', 'shinyBS', 'gplots'))
 
 # Load packages
 library(shiny)
 library(shinyBS)
 library(DT)
+library(gplots)
 library(Hmisc)
 library(reshape)
 
@@ -177,11 +178,11 @@ server <- function(input, output, session){
 			    			fluidRow(
 			    				column(6,
 			    					h4("X Metadata :"),
-					    			uiOutput("boxplot_var_one")
+					    			uiOutput("boxplot_meta_one")
 					    		),
 					    		column(6,
 					    			h4("Y Metadata :"),
-					    			uiOutput("boxplot_var_two")
+					    			uiOutput("boxplot_meta_two")
 					    		)
 				    		),			    			
 					    	downloadButton(
@@ -213,6 +214,33 @@ server <- function(input, output, session){
 		    	)
 			)
 		}
+	})
+
+	# Boxplot selected metadata
+	output$boxplot_meta_one <- renderUI({
+		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		tagList(
+			selectInput(
+				inputId = "boxplot_meta1",
+				label = NULL,
+				choices = c(colnames(samples_data), colnames(genes_data)),
+				width = "180px"
+			)
+		)
+	})
+
+	output$boxplot_meta_two <- renderUI({
+		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		tagList(
+			selectInput(
+				inputId = "boxplot_meta2",
+				label = NULL,
+				choices = subset(c(colnames(samples_data), colnames(genes_data)), !(c(colnames(samples_data),colnames(genes_data)) %in% input$boxplot_meta1)),
+				width = "180px"
+			)
+		)
 	})
 
 	# Dotplot selected samples
@@ -291,12 +319,14 @@ server <- function(input, output, session){
 	    	updateSelectInput(
         		session = session, 
         		inputId = "dotplot_sample1",
-        		choices = unique(samples_data[,1])
+        		choices = unique(samples_data[,1]),
+        		selected = input$dotplot_sample1
         	)
         	updateSelectInput(
         		session = session, 
         		inputId = "dotplot_sample2",
-        		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample1))
+        		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample1)),
+        		selected = input$dotplot_sample2
         	)
 
 	    	# Merge TPMS and genes metadata files according to filters
@@ -340,7 +370,19 @@ server <- function(input, output, session){
 			rownames(tpms_table) <- tpms_data[,1]
 
 			png(file, width = 1500, height = 1000) #pdf(file)
-			print(heatmap(as.matrix(scale(tpms_table)), col=colorRampPalette(c("red","white","blue"))(10)))
+			#print(heatmap(as.matrix(scale(tpms_table)), col=colorRampPalette(c("red","white","blue"))(10), xlab="Samples", ylab="Genes", main="Heatmap with hierarchical ascendant clustering from centered scaled TPMs"))
+			print(
+				heatmap.2(
+					as.matrix(scale(tpms_table, center=TRUE, scale=TRUE)),
+					col=colorRampPalette(c("red","white","blue"))(10), 
+					scale="row", 
+					margins=c(10,10), 
+					srtCol=45,  
+					xlab="Samples", 
+					ylab="Genes", 
+					main="Heatmap with hierarchical ascendant clustering from centered scaled TPMs"
+				)
+			)
 			dev.off()
 		}
   	)
@@ -350,12 +392,51 @@ server <- function(input, output, session){
 		filename = "boxplot.png",
 		content = function(file){
 			final_table <- final_table()
+			genes_data_table <- genes_data_table()
+			samples_data_table <- samples_data_table()
 
-			data_for_boxplot<-final_table[,-c(2,3)]
-			filtered_data<-melt(data_for_boxplot, id=c("gene_id","gene_group"))
+			boxplot_data<-final_table[,-c(2:length(genes_data_table))]
+			boxplot_choice<-"samples"
+
+			if (boxplot_choice == "genes"){
+				# Table for genes metadata ===>>> Remplacer les id par les variables
+				melted_data<-melt(boxplot_data, id=c("gene_id","gene_group"))
+				# Ajouter les colonnes choisies
+			} else if (boxplot_choice == "samples") {
+
+				# Table for samples metadata
+				transpo_tpms <- data.frame(t(boxplot_data))
+				factors <- sapply(transpo_tpms, is.factor)
+				transpo_tpms[factors] <- lapply(transpo_tpms[factors], as.character)
+				colnames(transpo_tpms) <- transpo_tpms[1,]
+				transpo_tpms <- transpo_tpms[-1,]
+
+				sample_id <- rownames(transpo_tpms)
+				transpo_tpms <- cbind(sample_id, data.frame(transpo_tpms, row.names=NULL))
+				merged_samples <- merge(samples_data_table, transpo_tpms, by="sample_id")
+				samples_for_boxplot <- merged_samples[,-c(1,4:6)]
+				melted_data <- melt(samples_for_boxplot, id=c("strain","phenotype"))
+			}
 
 			png(file, width = 1500, height = 1000) #pdf(file)
-			print(ggplot(data = filtered_data, aes(x=gene_group, y=log2(as.numeric(value)), fill=gene_group)) + geom_boxplot(aes(x=gene_group), outlier.colour="black", outlier.size=1) + facet_wrap( ~ variable, scales="free") + scale_color_brewer(palette="Set1") + ylab("log2(TPM)"))
+			print(
+				ggplot(
+					data = melted_data,
+					aes(
+						x = as.character(phenotype),
+						y = log2(as.numeric(value)),
+						fill = as.character(strain)
+					)
+				)
+				+ geom_boxplot(
+					aes(x = as.character(phenotype)),
+					outlier.colour = "black",
+					outlier.size = 1
+				)
+				#+ facet_wrap( ~ variable, scales = "free")
+				+ scale_color_brewer(palette = "Set1")
+				+ ylab("log2(TPM)")
+			)
 			dev.off()
 		}
   	)
@@ -366,11 +447,24 @@ server <- function(input, output, session){
 		content = function(file){
 			final_table <- final_table()
 
-			data_for_boxplot<-final_table[,-c(2,3)]
-			filtered_data<-melt(data_for_boxplot, id=c("gene_id","gene_group"))
-
 			png(file, width = 1500, height = 1000) #pdf(file)
-			print(ggplot(data = final_table, aes(x=get(input$dotplot_sample1), y=get(input$dotplot_sample2), fill=final_table[,1])) + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) + scale_color_brewer(palette="Set1")) #+ geom_label(aes(label = final_table[,1])
+			print(
+				ggplot(
+					data = final_table,
+					aes(
+						x = get(input$dotplot_sample1),
+						y = get(input$dotplot_sample2),
+						fill = final_table[,1]
+					)
+				)
+				+ geom_dotplot(
+					binaxis = 'y',
+					stackdir = 'center',
+					dotsize = 0.5
+				)
+				+ scale_color_brewer(palette = "Set1")
+				# + geom_label(aes(label = final_table[,1])
+			)
 			dev.off()
 		}
 	)
@@ -383,10 +477,26 @@ shinyApp(ui, server)
 if(FALSE){
 	# Fonction pour remplacer les "," par des "." pour les valeurs de tpms
 	substi<-function(x) {gsub("[,]",".",x) } 
-	
-	data_for_boxplot<-merged_data[,-c(2,3)]
-	filtered_data<-melt(data_for_boxplot, id=c("gene_id","gene_group"))
-	
+
+	# Data for genes boxplot
+	genes_for_boxplot<-merged_data[,-c(2,3)]
+	genes_melted_data<-melt(genes_for_boxplot, id=c("gene_id","gene_group"))
+
+
+	# Data for samples boxplot
+	t_tpms <- data.frame(t(tpms))
+	factors <- sapply(t_tpms, is.factor)
+	t_tpms[factors] <- lapply(t_tpms[i], as.character)
+	colnames(t_tpms) <- t_tpms[1,]
+	t_tpms <- t_tpms[-1,]
+
+	sample_id <- rownames(t_tpms)
+	t_tpms <- cbind(sample_id, data.frame(t_tpms, row.names=NULL))
+	merged_samples <- merge(samples_data_table, t_tpms, by="sample_id")
+	samples_for_boxplot <- merged_samples[,-c(1,4:6)]
+	samples_melted_data <- melt(samples_for_boxplot, id=c("strain","phenotype"))
+	# Remplacer "strain" et "phenotype" par les variables choisies dans les inputs #
+
 
 	## BOX PLOT
 	# Données et couleur
@@ -398,31 +508,18 @@ if(FALSE){
 	# Palette de couleur
 	+ scale_color_brewer(palette="Set1")
 
+	# Représente la distribution de TPMs de chaque groupe de gènes selon le sample
+	ggplot(data = filtered_data, aes(x=gene_group, y=log2(as.numeric(substi(value))), fill=gene_group))+ geom_boxplot(aes(x=variable), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
+	# Représente la distribution des TPMs de chaque sample selon le groupe du gène
+	ggplot(data = filtered_data, aes(x=variable, y=log2(as.numeric(substi(value))), fill=variable))+ geom_boxplot(aes(x=gene_group), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
+ 	# Distribution des TPMs de chaque Strain selon le phénotype
+	ggplot(data = samples_melted_data, aes(x=phenotype, y=log2(as.numeric(substi(value))), fill=as.character(strain)))+ geom_boxplot(aes(x=phenotype), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
+
 
 	## DOT PLOT
 	ggplot(data = tpms, aes(x=sample1, y=sample2, fill=gene_id)) + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) + scale_color_brewer(palette="Set1") + geom_label(aes(label = gene_id))
 
 
 	## HEATMAP
-	reorder_cormat <- function(cormat){
-		# Utiliser la corrélation entre les variables comme mesure de distance
-		dd <- as.dist((1-cormat)/2)
-		hc <- hclust(dd)
-		cormat <-cormat[hc$order, hc$order]
-	}
-	# Remplacer les , par des . dans le fichier tpms
-	cormat <- round(cor(tpms_data_table[,-c(1)]),2)
-	reordered_cormat <- reorder_cormat(cormat)
-
-	# Pour centrer réduire les valeurs (Intervalle pas entre -1 et 1)
-	scale(reordered_cormat, center=TRUE, scale=TRUE)
-	# Donne un intervalle quasi entre -1 et 1, mais est ce que c'est juste ???
-	cov(scale(reordered_cormat, center=TRUE, scale=TRUE))
-
-	melted_cormat<- melt(reordered_cormat)
-	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value)) #+ geom_tile(color="white") + scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
-	# Séparateur de case
-	+ geom_tile(color="white")
-	#Gradient de couleur 
-	+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
+	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value))+ geom_tile(color="white")	+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
 }
