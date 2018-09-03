@@ -175,16 +175,37 @@ server <- function(input, output, session){
 			    		tabPanel(
 			    			title = "Boxplot",
 			    			br(),
-			    			fluidRow(
-			    				column(6,
-			    					h4("X Metadata :"),
-					    			uiOutput("boxplot_meta_one")
+			    			selectInput(
+      							inputId = "metadata",
+      							label = "Metadata",
+      							choices = c("Samples", "Genes")
+    						),
+				    		fluidRow(
+				    			conditionalPanel(
+    								condition = "input.metadata == 'Samples'",
+				    				column(6,
+				    					h4("X Metadata :"),
+						    			uiOutput("metadata_sample_x")
+						    		),
+					    			# Y Metadata : log2(TPMs)
+					    			column(6,
+						    			h4("Color by :"),
+						    			uiOutput("metadata_sample_col")
+						    		)
 					    		),
-					    		column(6,
-					    			h4("Y Metadata :"),
-					    			uiOutput("boxplot_meta_two")
+					    		conditionalPanel(
+    								condition = "input.metadata == 'Genes'",
+				    				column(6,
+				    					h4("X Metadata :"),
+						    			uiOutput("metadata_gene_x")
+						    		),
+					    			# Y Metadata : log2(TPMs)
+					    			column(6,
+						    			h4("Color by :"),
+						    			uiOutput("metadata_gene_col")
+						    		)
 					    		)
-				    		),			    			
+					    	),			    			
 					    	downloadButton(
 					    		outputId = "boxplot",
 					    		label = "Boxplot",
@@ -217,27 +238,53 @@ server <- function(input, output, session){
 	})
 
 	# Boxplot selected metadata
-	output$boxplot_meta_one <- renderUI({
+	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
 		tagList(
 			selectInput(
-				inputId = "boxplot_meta1",
+				inputId = "meta_sample_x",
 				label = NULL,
-				choices = c(colnames(samples_data), colnames(genes_data)),
+				choices = c(colnames(samples_data)),
 				width = "180px"
 			)
 		)
 	})
 
-	output$boxplot_meta_two <- renderUI({
+	output$metadata_sample_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
 		tagList(
 			selectInput(
-				inputId = "boxplot_meta2",
+				inputId = "meta_sample_col",
 				label = NULL,
-				choices = subset(c(colnames(samples_data), colnames(genes_data)), !(c(colnames(samples_data),colnames(genes_data)) %in% input$boxplot_meta1)),
+				choices = subset(c(colnames(samples_data)), !(c(colnames(samples_data)) %in% input$meta_sample_x)),
+				width = "180px"
+			)
+		)
+	})
+
+	output$metadata_gene_x <- renderUI({
+		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		tagList(
+			selectInput(
+				inputId = "meta_gene_x",
+				label = NULL,
+				choices = c(colnames(genes_data)),
+				width = "180px"
+			)
+		)
+	})
+
+	output$metadata_gene_col <- renderUI({
+		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		tagList(
+			selectInput(
+				inputId = "meta_gene_col",
+				label = NULL,
+				choices = subset(c(colnames(genes_data)), !(c(colnames(genes_data)) %in% input$meta_gene_x)),
 				width = "180px"
 			)
 		)
@@ -398,46 +445,71 @@ server <- function(input, output, session){
 			boxplot_data<-final_table[,-c(2:length(genes_data_table))]
 			boxplot_choice<-"samples"
 
-			if (boxplot_choice == "genes"){
-				# Table for genes metadata ===>>> Remplacer les id par les variables
-				melted_data<-melt(boxplot_data, id=c("gene_id","gene_group"))
-				# Ajouter les colonnes choisies
-			} else if (boxplot_choice == "samples") {
+			if (input$metadata == "Genes"){
+				# Table for genes metadata
+				genes_for_boxplot <- boxplot_data[,-c(1)]
+				genes_for_boxplot <- cbind(genes_data_table[input$meta_gene_x],genes_data_table[input$meta_gene_col], genes_for_boxplot)
+				melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
+	
+				# Faire de la génération de l'image une fonction
+				png(file, width = 1500, height = 1000)
+				print(
+					ggplot(
+						data = melted_data,
+						aes(
+							x = as.character(get(input$meta_gene_x)),
+							y = log2(as.numeric(value)),
+							fill = as.character(get(input$meta_gene_col))
+						)
+					)
+					+ geom_boxplot(
+						aes(x = get(as.character(input$meta_gene_x))),
+						outlier.colour = "black",
+						outlier.size = 1
+					)
+					+ scale_color_brewer(palette = "Set1")
+					+ xlab(paste0(input$meta_gene_x))
+					+ ylab("log2(TPM)")
+					+ guides(fill=guide_legend(title=paste0(input$meta_gene_col)))
+				)
+				dev.off()
 
-				# Table for samples metadata
+			} else if (input$metadata == "Samples") {
+				# Transpose table for samples metadata
 				transpo_tpms <- data.frame(t(boxplot_data))
 				factors <- sapply(transpo_tpms, is.factor)
 				transpo_tpms[factors] <- lapply(transpo_tpms[factors], as.character)
 				colnames(transpo_tpms) <- transpo_tpms[1,]
-				transpo_tpms <- transpo_tpms[-1,]
 
-				sample_id <- rownames(transpo_tpms)
-				transpo_tpms <- cbind(sample_id, data.frame(transpo_tpms, row.names=NULL))
-				merged_samples <- merge(samples_data_table, transpo_tpms, by="sample_id")
-				samples_for_boxplot <- merged_samples[,-c(1,4:6)]
-				melted_data <- melt(samples_for_boxplot, id=c("strain","phenotype"))
-			}
+				samples_id <- rownames(transpo_tpms[-1,])
+				samples_data_table <- samples_data_table[samples_data_table[["sample_id"]] %in% samples_id,]
+				
+				transpo_tpms <- data.frame(transpo_tpms[-1,], row.names=NULL)
+				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data_table[input$meta_sample_col], transpo_tpms)
+				melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
 
-			png(file, width = 1500, height = 1000) #pdf(file)
-			print(
-				ggplot(
-					data = melted_data,
-					aes(
-						x = as.character(phenotype),
-						y = log2(as.numeric(value)),
-						fill = as.character(strain)
+				png(file, width = 1500, height = 1000)
+				print(
+					ggplot(
+						data = melted_data,
+						aes(
+							x = as.character(get(input$meta_sample_x)),
+							y = log2(as.numeric(value)),
+							fill = as.character(get(input$meta_sample_col))
+						)
 					)
+					+ geom_boxplot(
+						aes(x = get(as.character(input$meta_sample_x))),
+						outlier.colour = "black",
+						outlier.size = 1
+					)
+					+ scale_color_brewer(palette = "Set1")
+					+ xlab(paste0(input$meta_sample_x))
+					+ ylab("log2(TPM)")
+					+ guides(fill=guide_legend(title=paste0(input$meta_sample_col)))
 				)
-				+ geom_boxplot(
-					aes(x = as.character(phenotype)),
-					outlier.colour = "black",
-					outlier.size = 1
-				)
-				#+ facet_wrap( ~ variable, scales = "free")
-				+ scale_color_brewer(palette = "Set1")
-				+ ylab("log2(TPM)")
-			)
-			dev.off()
+				dev.off()				
+			}
 		}
   	)
 
@@ -463,7 +535,9 @@ server <- function(input, output, session){
 					dotsize = 0.5
 				)
 				+ scale_color_brewer(palette = "Set1")
-				# + geom_label(aes(label = final_table[,1])
+				+ xlab(paste0(input$dotplot_sample1, " (TPM)"))
+				+ ylab(paste0(input$dotplot_sample2, " (TPM)"))
+				+ guides(fill=guide_legend(title="Genes"))
 			)
 			dev.off()
 		}
