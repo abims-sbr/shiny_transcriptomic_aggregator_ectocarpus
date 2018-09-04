@@ -379,7 +379,7 @@ server <- function(input, output, session){
 	    	# Merge TPMS and genes metadata files according to filters
 		    gene_id <- tpms_data[1] # Supposing gene_id is the 1st column
 		    filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]]) # Supposing sample_id is the 1st column
-		    merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by="gene_id")
+		    merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
 		    final_table <- merged_genes_tpms
 
 		    #Ajouter un filtre des lignes de merged_data selon les genes metadata
@@ -415,12 +415,13 @@ server <- function(input, output, session){
 
 			tpms_table <- tpms_data[,-1]
 			rownames(tpms_table) <- tpms_data[,1]
+			tpms_matrix <- data.matrix(tpms_table)
 
-			png(file, width = 1500, height = 1000) #pdf(file)
+			png(file, width = 1500, height = 1000)
 			#print(heatmap(as.matrix(scale(tpms_table)), col=colorRampPalette(c("red","white","blue"))(10), xlab="Samples", ylab="Genes", main="Heatmap with hierarchical ascendant clustering from centered scaled TPMs"))
 			print(
 				heatmap.2(
-					as.matrix(scale(tpms_table, center=TRUE, scale=TRUE)),
+					scale(tpms_matrix, center=TRUE, scale=TRUE),
 					col=colorRampPalette(c("red","white","blue"))(10), 
 					scale="row", 
 					margins=c(10,10), 
@@ -519,7 +520,7 @@ server <- function(input, output, session){
 		content = function(file){
 			final_table <- final_table()
 
-			png(file, width = 1500, height = 1000) #pdf(file)
+			png(file, width = 1500, height = 1000)
 			print(
 				ggplot(
 					data = final_table,

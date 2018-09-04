@@ -3,7 +3,7 @@ merge_duplicated_data <- function(table){
 	before_i_list <- c()
 	i_list <- c()
 	i_value_list <- c()
-	duplicated_data<-duplicated(table$gene_id)
+	duplicated_data<-duplicated(table[1])
 
 	if ( length(unique(duplicated_data))>1 ) {
 		for ( i in 1:length(duplicated_data) ) {
