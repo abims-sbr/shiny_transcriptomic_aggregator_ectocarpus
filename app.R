@@ -1,9 +1,7 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
-# Update installed packages
-#update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinyBS', 'gplots'))
+install.packages(c('shiny', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
 
 # Load packages
 library(shiny)
@@ -418,7 +416,6 @@ server <- function(input, output, session){
 			tpms_matrix <- data.matrix(tpms_table)
 
 			png(file, width = 1500, height = 1000)
-			#print(heatmap(as.matrix(scale(tpms_table)), col=colorRampPalette(c("red","white","blue"))(10), xlab="Samples", ylab="Genes", main="Heatmap with hierarchical ascendant clustering from centered scaled TPMs"))
 			print(
 				heatmap.2(
 					scale(tpms_matrix, center=TRUE, scale=TRUE),
@@ -428,7 +425,7 @@ server <- function(input, output, session){
 					srtCol=45,  
 					xlab="Samples", 
 					ylab="Genes", 
-					main="Heatmap with hierarchical ascendant clustering from centered scaled TPMs"
+					#main="Heatmap"
 				)
 			)
 			dev.off()
@@ -469,6 +466,7 @@ server <- function(input, output, session){
 						outlier.size = 1
 					)
 					+ scale_color_brewer(palette = "Set1")
+					#+ ggtitle("Boxplot")
 					+ xlab(paste0(input$meta_gene_x))
 					+ ylab("log2(TPM)")
 					+ guides(fill=guide_legend(title=paste0(input$meta_gene_col)))
@@ -505,6 +503,7 @@ server <- function(input, output, session){
 						outlier.size = 1
 					)
 					+ scale_color_brewer(palette = "Set1")
+					#+ ggtitle("Boxplot")
 					+ xlab(paste0(input$meta_sample_x))
 					+ ylab("log2(TPM)")
 					+ guides(fill=guide_legend(title=paste0(input$meta_sample_col)))
@@ -525,8 +524,8 @@ server <- function(input, output, session){
 				ggplot(
 					data = final_table,
 					aes(
-						x = get(input$dotplot_sample1),
-						y = get(input$dotplot_sample2),
+						x = log2(get(input$dotplot_sample1)),
+						y = log2(get(input$dotplot_sample2)),
 						fill = final_table[,1]
 					)
 				)
@@ -536,8 +535,9 @@ server <- function(input, output, session){
 					dotsize = 0.5
 				)
 				+ scale_color_brewer(palette = "Set1")
-				+ xlab(paste0(input$dotplot_sample1, " (TPM)"))
-				+ ylab(paste0(input$dotplot_sample2, " (TPM)"))
+				#+ ggtitle("Dotplot")
+				+ xlab(paste0(input$dotplot_sample1, " (log2(TPM))"))
+				+ ylab(paste0(input$dotplot_sample2, " (log2(TPM))"))
 				+ guides(fill=guide_legend(title="Genes"))
 			)
 			dev.off()
@@ -546,55 +546,3 @@ server <- function(input, output, session){
 }
 
 shinyApp(ui, server)
-
-
-# Build graphs
-if(FALSE){
-	# Fonction pour remplacer les "," par des "." pour les valeurs de tpms
-	substi<-function(x) {gsub("[,]",".",x) } 
-
-	# Data for genes boxplot
-	genes_for_boxplot<-merged_data[,-c(2,3)]
-	genes_melted_data<-melt(genes_for_boxplot, id=c("gene_id","gene_group"))
-
-
-	# Data for samples boxplot
-	t_tpms <- data.frame(t(tpms))
-	factors <- sapply(t_tpms, is.factor)
-	t_tpms[factors] <- lapply(t_tpms[i], as.character)
-	colnames(t_tpms) <- t_tpms[1,]
-	t_tpms <- t_tpms[-1,]
-
-	sample_id <- rownames(t_tpms)
-	t_tpms <- cbind(sample_id, data.frame(t_tpms, row.names=NULL))
-	merged_samples <- merge(samples_data_table, t_tpms, by="sample_id")
-	samples_for_boxplot <- merged_samples[,-c(1,4:6)]
-	samples_melted_data <- melt(samples_for_boxplot, id=c("strain","phenotype"))
-	# Remplacer "strain" et "phenotype" par les variables choisies dans les inputs #
-
-
-	## BOX PLOT
-	# Données et couleur
-	ggplot(data = filtered_data, aes(x=gene_group, y=as.numeric(substi(value)), fill=gene_group)) #color=gene_group)) 
-	# Boîtes et points
-	+ geom_boxplot(aes(x=gene_group), outlier.colour="black", outlier.size=1)
-	# Séparation en plusieurs graphes
-	+ facet_wrap( ~ variable, scales="free") 
-	# Palette de couleur
-	+ scale_color_brewer(palette="Set1")
-
-	# Représente la distribution de TPMs de chaque groupe de gènes selon le sample
-	ggplot(data = filtered_data, aes(x=gene_group, y=log2(as.numeric(substi(value))), fill=gene_group))+ geom_boxplot(aes(x=variable), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
-	# Représente la distribution des TPMs de chaque sample selon le groupe du gène
-	ggplot(data = filtered_data, aes(x=variable, y=log2(as.numeric(substi(value))), fill=variable))+ geom_boxplot(aes(x=gene_group), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
- 	# Distribution des TPMs de chaque Strain selon le phénotype
-	ggplot(data = samples_melted_data, aes(x=phenotype, y=log2(as.numeric(substi(value))), fill=as.character(strain)))+ geom_boxplot(aes(x=phenotype), outlier.colour="black", outlier.size=1) + scale_color_brewer(palette="Set1") + theme(axis.text.x = element_text(angle=45, hjust=1))
-
-
-	## DOT PLOT
-	ggplot(data = tpms, aes(x=sample1, y=sample2, fill=gene_id)) + geom_dotplot(binaxis='y', stackdir='center', dotsize=0.5) + scale_color_brewer(palette="Set1") + geom_label(aes(label = gene_id))
-
-
-	## HEATMAP
-	ggplot(data = melted_cormat, aes(x=Var1, y=Var2, fill=value))+ geom_tile(color="white")	+ scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0, limit = c(-1,1), space = "Lab")
-}
