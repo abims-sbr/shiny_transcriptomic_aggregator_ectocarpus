@@ -6,7 +6,7 @@
 
 https://github.com/abims-sbr/shiny_transcriptomic_aggregator/releases
 
-- Unzip it where you want (<PATH>)
+- Unzip it where you want (`<PATH>`)
 
 - Run it :
 
