@@ -1,10 +1,11 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Install some packages
-install.packages(c('shiny', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
 
 # Load packages
 library(shiny)
+library(shinyjs)
 library(shinyBS)
 library(DT)
 library(gplots)
@@ -14,16 +15,19 @@ library(reshape)
 # Load functions
 source("lib/merge_duplicated_data.R")
 source("lib/read_tables.R")
+source("lib/build_graphs.R")
 
 
 # User interface
 ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
+	useShinyjs(),
 	br(),
 	fluidRow(
 		# Import Files Panel
 		column(3,
 			bsCollapse(
+				id = "files_panel",
 				open = "filters",
 				bsCollapsePanel(
 					title = h3("Import data"),
@@ -48,6 +52,17 @@ ui <- bootstrapPage(
 				        multiple = FALSE,
 				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
 				        width = "100%"
+				    ),
+				    fileInput(
+				   		inputId = "genes_list_file", 
+				   		label = "Import Genes List (.txt/.csv) [OPTIONAL]",
+				        multiple = FALSE,
+				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
+				        width = "100%"
+				    ),
+				    actionButton(
+				    	inputId = "reset_files",
+				    	label = "Reset"
 				    )
 			    )
 		    ),
@@ -85,6 +100,11 @@ server <- function(input, output, session){
 
     tpms_data_table <- eventReactive(input$tpms_file, {
         tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
+    })
+
+    genes_list <- reactiveVal(value=NULL)
+    observeEvent(input$genes_list_file, {
+    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
     })
 
     final_table <- reactiveVal(0)
@@ -164,10 +184,23 @@ server <- function(input, output, session){
 			    		tabPanel(
 			    			title = "Heatmap",
 			    			br(),
-			    			downloadButton(
-					    		outputId = "heatmap",
-					    		label = "Heatmap",
-					    		width = "100%"
+			    			fluidRow(
+			    				column(8,
+					    			selectInput(
+					        			inputId = "heatmap_ext",
+					        			label = "Export format :",
+					                	choices = c("PNG", "PDF", "SVG", "EPS"),
+					                	width = "200px"
+					    			)
+			    				),
+			    				column(4,
+			    					br(),
+					    			downloadButton(
+							    		outputId = "heatmap",
+							    		label = "Heatmap",
+							    		width = "100%"
+					    			)
+			    				)
 			    			)
 			    		),
 			    		tabPanel(
@@ -203,12 +236,26 @@ server <- function(input, output, session){
 						    			uiOutput("metadata_gene_col")
 						    		)
 					    		)
-					    	),			    			
-					    	downloadButton(
-					    		outputId = "boxplot",
-					    		label = "Boxplot",
-					    		width = "100%"
-			    			)
+					    	),
+					    	hr(),
+					    	fluidRow(
+					    		column(8,
+							    	selectInput(
+					        			inputId = "boxplot_ext",
+					        			label = "Export format :",
+					                	choices = c("PNG", "PDF", "SVG", "EPS"),
+					                	width = "200px"
+					    			)
+					    		),
+					    		column(4,
+					    			br(),
+							    	downloadButton(
+							    		outputId = "boxplot",
+							    		label = "Boxplot",
+							    		width = "100%"
+					    			)
+					    		)
+					    	)
 			    		),
 			    		tabPanel(
 			    			title = "Dotplot",
@@ -223,11 +270,25 @@ server <- function(input, output, session){
 					    			uiOutput("dotplot_sample_two")
 					    		)
 				    		),
-					    	downloadButton(
-					    		outputId = "dotplot",
-					    		label = "Dotplot",
-					    		width = "100%"
-			    			)
+				    		hr(),
+				    		fluidRow(
+				    			column(8,
+					    			selectInput(
+					        			inputId = "dotplot_ext",
+					        			label = "Export format :",
+					                	choices = c("PNG", "PDF", "SVG", "EPS"),
+					                	width = "200px"
+					    			)
+				    			),
+				    			column(4,
+				    				br(),
+							    	downloadButton(
+							    		outputId = "dotplot",
+							    		label = "Dotplot",
+							    		width = "100%"
+					    			)
+				    			)
+				    		)
 			    		)
 			    	)
 		    	)
@@ -334,6 +395,10 @@ server <- function(input, output, session){
         	)
 		}
   	})
+  	observeEvent(input$reset_files, {
+  		genes_list(NULL)
+  		reset('files_panel')
+  	})
 
 	# DataTable
 	output$table <- renderDataTable(
@@ -380,7 +445,6 @@ server <- function(input, output, session){
 		    merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
 		    final_table <- merged_genes_tpms
 
-		    #Ajouter un filtre des lignes de merged_data selon les genes metadata
 		    for ( i in 1:ncol(genes_data_table)){
 		    	if (input[[colnames(genes_data_table)[i]]] != "All") {
 			    	for ( j in 1:nrow(genes_data_table)) {
@@ -388,6 +452,13 @@ server <- function(input, output, session){
 				    }
 				}
 			}
+
+	    	# Update table by gene list file
+	    	genes_list <- genes_list()
+	    	if (length(genes_list) > 0) {
+	    		final_table <- subset(final_table, final_table[,1] %in% genes_list[[1]])	
+	    	}
+
 		    final_table(final_table)
 		    final_table
 		},
@@ -406,35 +477,25 @@ server <- function(input, output, session){
 
 	# Heatmap
 	output$heatmap <- downloadHandler (
-		filename = "heatmap.png",
-		content = function(file){
+		filename = function() {
+			paste0("heatmap.", tolower(input$heatmap_ext))
+		},
+		content = function(file) {
 			final_table <- final_table()
 			tpms_data <- final_table[,-c(2:4)]
-
 			tpms_table <- tpms_data[,-1]
 			rownames(tpms_table) <- tpms_data[,1]
 			tpms_matrix <- data.matrix(tpms_table)
 
-			png(file, width = 1500, height = 1000)
-			print(
-				heatmap.2(
-					scale(tpms_matrix, center=TRUE, scale=TRUE),
-					col=colorRampPalette(c("red","white","blue"))(10), 
-					scale="row", 
-					margins=c(10,10), 
-					srtCol=45,  
-					xlab="Samples", 
-					ylab="Genes", 
-					#main="Heatmap"
-				)
-			)
-			dev.off()
+			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext)
 		}
   	)
 
   	# Boxplot
 	output$boxplot <- downloadHandler (		
-		filename = "boxplot.png",
+		filename = function() {
+			paste0("boxplot.", tolower(input$boxplot_ext))
+		},
 		content = function(file){
 			final_table <- final_table()
 			genes_data_table <- genes_data_table()
@@ -449,29 +510,7 @@ server <- function(input, output, session){
 				genes_for_boxplot <- cbind(genes_data_table[input$meta_gene_x],genes_data_table[input$meta_gene_col], genes_for_boxplot)
 				melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
 	
-				# Faire de la génération de l'image une fonction
-				png(file, width = 1500, height = 1000)
-				print(
-					ggplot(
-						data = melted_data,
-						aes(
-							x = as.character(get(input$meta_gene_x)),
-							y = log2(as.numeric(value)),
-							fill = as.character(get(input$meta_gene_col))
-						)
-					)
-					+ geom_boxplot(
-						aes(x = get(as.character(input$meta_gene_x))),
-						outlier.colour = "black",
-						outlier.size = 1
-					)
-					+ scale_color_brewer(palette = "Set1")
-					#+ ggtitle("Boxplot")
-					+ xlab(paste0(input$meta_gene_x))
-					+ ylab("log2(TPM)")
-					+ guides(fill=guide_legend(title=paste0(input$meta_gene_col)))
-				)
-				dev.off()
+				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_gene_x , col = input$meta_gene_col)
 
 			} else if (input$metadata == "Samples") {
 				# Transpose table for samples metadata
@@ -487,60 +526,19 @@ server <- function(input, output, session){
 				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data_table[input$meta_sample_col], transpo_tpms)
 				melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
 
-				png(file, width = 1500, height = 1000)
-				print(
-					ggplot(
-						data = melted_data,
-						aes(
-							x = as.character(get(input$meta_sample_x)),
-							y = log2(as.numeric(value)),
-							fill = as.character(get(input$meta_sample_col))
-						)
-					)
-					+ geom_boxplot(
-						aes(x = get(as.character(input$meta_sample_x))),
-						outlier.colour = "black",
-						outlier.size = 1
-					)
-					+ scale_color_brewer(palette = "Set1")
-					#+ ggtitle("Boxplot")
-					+ xlab(paste0(input$meta_sample_x))
-					+ ylab("log2(TPM)")
-					+ guides(fill=guide_legend(title=paste0(input$meta_sample_col)))
-				)
-				dev.off()				
+				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_sample_x , col = input$meta_sample_col)	
 			}
 		}
   	)
 
   	# Dotplot
   	output$dotplot <- downloadHandler (	
-		filename = "dotplot.png",
+		filename = function() {
+			paste0("dotplot.", tolower(input$dotplot_ext))
+		},
 		content = function(file){
 			final_table <- final_table()
-
-			png(file, width = 1500, height = 1000)
-			print(
-				ggplot(
-					data = final_table,
-					aes(
-						x = log2(get(input$dotplot_sample1)),
-						y = log2(get(input$dotplot_sample2)),
-						fill = final_table[,1]
-					)
-				)
-				+ geom_dotplot(
-					binaxis = 'y',
-					stackdir = 'center',
-					dotsize = 0.5
-				)
-				+ scale_color_brewer(palette = "Set1")
-				#+ ggtitle("Dotplot")
-				+ xlab(paste0(input$dotplot_sample1, " (log2(TPM))"))
-				+ ylab(paste0(input$dotplot_sample2, " (log2(TPM))"))
-				+ guides(fill=guide_legend(title="Genes"))
-			)
-			dev.off()
+			buildDotplot(final_table, file, ext = input$dotplot_ext, x=input$dotplot_sample1, y=input$dotplot_sample2)
 		}
 	)
 }
