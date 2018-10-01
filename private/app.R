@@ -13,14 +13,14 @@ library(Hmisc)
 library(reshape)
 
 # Load functions
-source("lib/merge_duplicated_data.R")
-source("lib/read_tables.R")
-source("lib/build_graphs.R")
+source("../lib/merge_duplicated_data.R")
+source("../lib/read_tables.R")
+source("../lib/build_graphs.R")
 
 
 # User interface
 ui <- bootstrapPage(
-	includeCSS("static/css/styles.css"),
+	includeCSS("../static/css/styles.css"),
 	useShinyjs(),
 	br(),
 	fluidRow(
