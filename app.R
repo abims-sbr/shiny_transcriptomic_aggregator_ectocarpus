@@ -1,13 +1,14 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'ggplots2', 'gplots', 'Hmisc', 'reshape'))
 
 # Load packages
 library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(DT)
+library(ggplot2)
 library(gplots)
 library(Hmisc)
 library(reshape)
