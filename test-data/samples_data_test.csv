@@ -1,31 +1,31 @@
-sample_id	strain	phenotype	sex	stage	generation
-Sample1.1.d.m.m.p	1	dis	male	mature	parthenosporophyte
-Sample2.1.d.m.m.g	1	dis	male	mature	gametophyte
-Sample3.1.w.m.m.g	1	wt	male	mature	gametophyte
-Sample4.1.w.m.m.p	1	wt	male	mature	parthenosporophyte
-Sample5.1.w.f.m.p	1	wt	female	mature	parthenosporophyte
-Sample6.1.w.f.m.s	1	wt	female	mature	sporophyte
-Sample7.2.d.f.m.s	2	dis	female	mature	sporophyte
-Sample8.2.d.f.m.p	2	dis	female	mature	parthenosporophyte
-Sample9.2.d.f.m.g	2	dis	female	mature	gametophyte
-Sample10.2.d.N.m.s	2	dis	ND	mature	sporophyte
-Sample11.3.w.m.m.s	3	wt	male	mature	sporophyte
-Sample12.3.w.m.m.p	3	wt	male	mature	parthenosporophyte
-Sample13.4.w.m.i.s	4	wt	male	immature	sporophyte
-Sample14.4.w.N.i.g	4	wt	ND	immature	gametophyte
-Sample15.4.d.m.i.p	4	dis	male	immature	parthenosporophyte
-Sample16.4.d.m.m.p	4	dis	male	mature	parthenosporophyte
-Sample17.4.w.f.i.g	4	wt	female	immature	gametophyte
-Sample18.4.w.f.m.s	4	wt	female	mature	sporophyte
-Sample19.5.w.m.i.g	5	wt	male	immature	gametophyte
-Sample20.5.d.m.i.g	5	dis	male	immature	gametophyte
-Sample21.5.w.m.m.p	5	wt	male	mature	parthenosporophyte
-Sample22.6.w.m.m.p	6	wt	male	mature	parthenosporophyte
-Sample23.6.w.f.m.p	6	wt	female	mature	parthenosporophyte
-Sample24.6.w.f.m.g	6	wt	female	mature	gametophyte
-Sample25.7.w.m.i.g	7	wt	male	immature	gametophyte
-Sample26.7.d.m.i.g	7	dis	male	immature	gametophyte
-Sample27.7.d.m.i.p	7	dis	male	immature	parthenosporophyte
-Sample28.7.d.m.i.s	7	dis	male	immature	sporophyte
-Sample29.7.w.f.i.g	7	wt	female	immature	gametophyte
-Sample30.8.w.f.m.g	8	wt	female	mature	gametophyte
+sample_id	strain	phenotype	sex	stage	generation	private
+Sample1.1.d.m.m.p	1	dis	male	mature	parthenosporophyte	TRUE
+Sample2.1.d.m.m.g	1	dis	male	mature	gametophyte	TRUE
+Sample3.1.w.m.m.g	1	wt	male	mature	gametophyte	TRUE
+Sample4.1.w.m.m.p	1	wt	male	mature	parthenosporophyte	TRUE
+Sample5.1.w.f.m.p	1	wt	female	mature	parthenosporophyte	TRUE
+Sample6.1.w.f.m.s	1	wt	female	mature	sporophyte	TRUE
+Sample7.2.d.f.m.s	2	dis	female	mature	sporophyte	TRUE
+Sample8.2.d.f.m.p	2	dis	female	mature	parthenosporophyte	TRUE
+Sample9.2.d.f.m.g	2	dis	female	mature	gametophyte	TRUE
+Sample10.2.d.N.m.s	2	dis	ND	mature	sporophyte	TRUE
+Sample11.3.w.m.m.s	3	wt	male	mature	sporophyte	FALSE
+Sample12.3.w.m.m.p	3	wt	male	mature	parthenosporophyte	FALSE
+Sample13.4.w.m.i.s	4	wt	male	immature	sporophyte	FALSE
+Sample14.4.w.N.i.g	4	wt	ND	immature	gametophyte	FALSE
+Sample15.4.d.m.i.p	4	dis	male	immature	parthenosporophyte	FALSE
+Sample16.4.d.m.m.p	4	dis	male	mature	parthenosporophyte	FALSE
+Sample17.4.w.f.i.g	4	wt	female	immature	gametophyte	FALSE
+Sample18.4.w.f.m.s	4	wt	female	mature	sporophyte	FALSE
+Sample19.5.w.m.i.g	5	wt	male	immature	gametophyte	FALSE
+Sample20.5.d.m.i.g	5	dis	male	immature	gametophyte	FALSE
+Sample21.5.w.m.m.p	5	wt	male	mature	parthenosporophyte	FALSE
+Sample22.6.w.m.m.p	6	wt	male	mature	parthenosporophyte	FALSE
+Sample23.6.w.f.m.p	6	wt	female	mature	parthenosporophyte	FALSE
+Sample24.6.w.f.m.g	6	wt	female	mature	gametophyte	FALSE
+Sample25.7.w.m.i.g	7	wt	male	immature	gametophyte	FALSE
+Sample26.7.d.m.i.g	7	dis	male	immature	gametophyte	FALSE
+Sample27.7.d.m.i.p	7	dis	male	immature	parthenosporophyte	FALSE
+Sample28.7.d.m.i.s	7	dis	male	immature	sporophyte	FALSE
+Sample29.7.w.f.i.g	7	wt	female	immature	gametophyte	FALSE
+Sample30.8.w.f.m.g	8	wt	female	mature	gametophyte	FALSE

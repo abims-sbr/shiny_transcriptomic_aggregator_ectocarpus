@@ -1,7 +1,7 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape', 'data.table'))
 
 # Load packages
 library(shiny)
@@ -11,6 +11,7 @@ library(DT)
 library(gplots)
 library(Hmisc)
 library(reshape)
+library(data.table)
 
 # Load functions
 source("../lib/merge_duplicated_data.R")
@@ -77,8 +78,10 @@ ui <- bootstrapPage(
 	tags$hr(),
 	# DataTable
 	fluidRow(
-		column(
-			width = 12,
+		column(2,
+			uiOutput("samples_id_filter")
+		),
+		column(10,
 			dataTableOutput('table')
 		)
 	)
@@ -88,9 +91,17 @@ ui <- bootstrapPage(
 # Server function
 server <- function(input, output, session){
 
+	# Initialisation	
+    final_table <- reactiveVal(0)
+
+
 	# Import files
 	samples_data_table <- eventReactive(input$samples_data_file, {
         samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
+        # Filter private samples
+		if("private" %in% tolower(colnames(samples_data_table))){
+			samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+		}
     })
 
     genes_data_table <- eventReactive(input$genes_data_file, {
@@ -102,12 +113,6 @@ server <- function(input, output, session){
         tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
     })
 
-    genes_list <- reactiveVal(value=NULL)
-    observeEvent(input$genes_list_file, {
-    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
-    })
-
-    final_table <- reactiveVal(0)
 
 	# Generate UI Samples Filters
 	output$samples_filters <- renderUI({
@@ -117,15 +122,17 @@ server <- function(input, output, session){
 				title = h3("Samples Metadata Filters"),
 				fluidRow(
 			      	lapply(1:ncol(samples_data_table), function(i) {
-			      		column(3,
-							selectInput(
-			        			inputId = colnames(samples_data_table)[i],
-			        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data_table)[i])), " :"),
-			                	choices = c("All", sort(unique(samples_data_table[,i]))),
-			                	width = "200px",
-			                	selected = "All"
-			            	)
-			      		)
+			      		if ((tolower(colnames(samples_data_table)[i]) != "private") & (tolower(colnames(samples_data_table)[i]) != "sample_id")) {
+				      		column(3,
+								selectInput(
+				        			inputId = colnames(samples_data_table)[i],
+				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data_table)[i])), " :"),
+				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data_table[,i]),","))))),
+				                	width = "200px",
+				                	selected = "All"
+				            	)
+				      		)
+				      	}
 			      	})
 				),
 				fluidRow(
@@ -153,9 +160,9 @@ server <- function(input, output, session){
 							selectInput(
 			        			inputId = colnames(genes_data_table)[i],
 			        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
-			                	choices = c("All", sort(unique(genes_data_table[,i]))),
-			                	width = "200px",
-			                	selected = "All"
+			                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table[,i]), ","))))),
+			                	selected = "All",
+			                	width = "200px"				                
 							)
 						)
 					})
@@ -172,6 +179,21 @@ server <- function(input, output, session){
 			)
 		)
 	})
+
+	output$samples_id_filter <- renderUI({
+    	samples_data_table <- samples_data_table()
+    	wellPanel(
+    		HTML("<h4><b>Sample id :</h4></b>"),
+			hr(),
+	    	checkboxGroupInput(
+	    		inputId = "sample_id",
+	    		label = NULL,
+	           	choices = as.character(samples_data_table[,1][order(nchar(samples_data_table[,1]), samples_data_table[,1])]),
+	           	selected = as.character(samples_data_table[,1][order(nchar(samples_data_table[,1]), samples_data_table[,1])]),
+	        	width = "200px"
+			)
+		)
+    })
 
 	# Graphs tab
 	output$graphs_tab <- renderUI({
@@ -300,6 +322,9 @@ server <- function(input, output, session){
 	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
+		if("private" %in% tolower(colnames(samples_data))){
+			samples_data["private"] <- NULL
+		}
 		tagList(
 			selectInput(
 				inputId = "meta_sample_x",
@@ -313,6 +338,9 @@ server <- function(input, output, session){
 	output$metadata_sample_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
+		if("private" %in% tolower(colnames(samples_data))){
+			samples_data["private"] <- NULL
+		}
 		tagList(
 			selectInput(
 				inputId = "meta_sample_col",
@@ -374,6 +402,13 @@ server <- function(input, output, session){
 		)
 	})
 
+
+	# Events
+	genes_list <- reactiveVal(value=NULL)
+    observeEvent(input$genes_list_file, {
+    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
+    })
+
 	# Reset filters values
 	observeEvent(input$reset_samples_values, {
 		samples_data_table <- samples_data_table()
@@ -400,6 +435,8 @@ server <- function(input, output, session){
   		reset('files_panel')
   	})
 
+
+
 	# DataTable
 	output$table <- renderDataTable(
 		{
@@ -407,33 +444,52 @@ server <- function(input, output, session){
 			genes_data_table <- genes_data_table()
 			tpms_data <- tpms_data_table()
 
-			# Apply filters
+	    	# Filter private samples
+			if("private" %in% tolower(colnames(samples_data))){
+				samples_data["private"] <- NULL
+			}
+
+			# Apply samples filters
 			for ( i in 1:ncol(samples_data)) {
-        		if (input[[colnames(samples_data)[i]]] != "All") {
-				    samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+				if (tolower(colnames(samples_data)[i]) == "sample_id") {
+        			samples_data <- subset(samples_data, samples_data[,i] %in% input$sample_id)
+	        	} else {
+					if (input[[colnames(samples_data)[i]]] != "All") {
+			    		samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+					}
 				}
 			}
 
 			# Update other filters values
 			for ( j in 1:ncol(samples_data)) {
-				if ( input[[colnames(samples_data)[j]]] == "All") {
-				    updateSelectInput(
-				       	session = session, 
-				       	inputId = colnames(samples_data)[j],
-				       	choices = c("All", unique(samples_data[,j])),
-				       	selected = "All"
-		    		)
+				if (tolower(colnames(samples_data)[j]) != "sample_id") {
+					if (input[[colnames(samples_data)[j]]] == "All") {
+					    updateSelectInput(
+					       	session = session, 
+					       	inputId = colnames(samples_data)[j],
+					       	choices = c("All", unique(samples_data[,j])),
+					       	selected = "All"
+			    		)
+					}
 				}
 	    	}
 
+	    	updateCheckboxGroupInput(
+	    		session = session,
+				inputId = "sample_id",
+	    		label = NULL,
+	           	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+	           	selected = as.character(samples_data[,1])
+
+	    	)
 	    	updateSelectInput(
-        		session = session, 
+        		session = session,
         		inputId = "dotplot_sample1",
         		choices = unique(samples_data[,1]),
         		selected = input$dotplot_sample1
         	)
         	updateSelectInput(
-        		session = session, 
+        		session = session,
         		inputId = "dotplot_sample2",
         		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample1)),
         		selected = input$dotplot_sample2
@@ -447,9 +503,7 @@ server <- function(input, output, session){
 
 		    for ( i in 1:ncol(genes_data_table)){
 		    	if (input[[colnames(genes_data_table)[i]]] != "All") {
-			    	for ( j in 1:nrow(genes_data_table)) {
-				    	final_table <- merged_genes_tpms[merged_genes_tpms[,i] == input[[colnames(genes_data_table)[i]]],]
-				    }
+				    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
 				}
 			}
 
