@@ -1,7 +1,7 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape', 'data.table'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
 
 # Load packages
 library(shiny)
@@ -11,7 +11,6 @@ library(DT)
 library(gplots)
 library(Hmisc)
 library(reshape)
-library(data.table)
 
 # Load functions
 source("../lib/merge_duplicated_data.R")
@@ -98,10 +97,11 @@ server <- function(input, output, session){
 	# Import files
 	samples_data_table <- eventReactive(input$samples_data_file, {
         samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
-        # Filter private samples
 		if("private" %in% tolower(colnames(samples_data_table))){
 			samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+			samples_data_table["private"] <- NULL
 		}
+		samples_data_table
     })
 
     genes_data_table <- eventReactive(input$genes_data_file, {
@@ -116,18 +116,18 @@ server <- function(input, output, session){
 
 	# Generate UI Samples Filters
 	output$samples_filters <- renderUI({
-		samples_data_table <- samples_data_table()
+		samples_data <- samples_data_table()
 		tagList(
 			bsCollapsePanel(
 				title = h3("Samples Metadata Filters"),
 				fluidRow(
-			      	lapply(1:ncol(samples_data_table), function(i) {
-			      		if ((tolower(colnames(samples_data_table)[i]) != "private") & (tolower(colnames(samples_data_table)[i]) != "sample_id")) {
+			      	lapply(1:ncol(samples_data), function(i) {
+			      		if (tolower(colnames(samples_data)[i]) != "sample_id") {
 				      		column(3,
 								selectInput(
-				        			inputId = colnames(samples_data_table)[i],
-				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data_table)[i])), " :"),
-				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data_table[,i]),","))))),
+				        			inputId = colnames(samples_data)[i],
+				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
+				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]),","))))),
 				                	width = "200px",
 				                	selected = "All"
 				            	)
@@ -181,15 +181,20 @@ server <- function(input, output, session){
 	})
 
 	output$samples_id_filter <- renderUI({
-    	samples_data_table <- samples_data_table()
+    	samples_data <- samples_data_table()
     	wellPanel(
+    		style = paste0("overflow-y:auto; max-height: 700px"),
     		HTML("<h4><b>Sample id :</h4></b>"),
 			hr(),
+			actionButton(
+				inputId = "select_all",
+				label = "Select all"
+			),
 	    	checkboxGroupInput(
 	    		inputId = "sample_id",
 	    		label = NULL,
-	           	choices = as.character(samples_data_table[,1][order(nchar(samples_data_table[,1]), samples_data_table[,1])]),
-	           	selected = as.character(samples_data_table[,1][order(nchar(samples_data_table[,1]), samples_data_table[,1])]),
+	           	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+	           	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
 	        	width = "200px"
 			)
 		)
@@ -203,28 +208,6 @@ server <- function(input, output, session){
 			    	title = h3("Graphs"),
 			    	tabsetPanel(
 			    		type = "tabs",
-			    		tabPanel(
-			    			title = "Heatmap",
-			    			br(),
-			    			fluidRow(
-			    				column(8,
-					    			selectInput(
-					        			inputId = "heatmap_ext",
-					        			label = "Export format :",
-					                	choices = c("PNG", "PDF", "SVG", "EPS"),
-					                	width = "200px"
-					    			)
-			    				),
-			    				column(4,
-			    					br(),
-					    			downloadButton(
-							    		outputId = "heatmap",
-							    		label = "Heatmap",
-							    		width = "100%"
-					    			)
-			    				)
-			    			)
-			    		),
 			    		tabPanel(
 			    			title = "Boxplot",
 			    			br(),
@@ -311,6 +294,28 @@ server <- function(input, output, session){
 					    			)
 				    			)
 				    		)
+			    		),
+			    		tabPanel(
+			    			title = "Heatmap",
+			    			br(),
+			    			fluidRow(
+			    				column(8,
+					    			selectInput(
+					        			inputId = "heatmap_ext",
+					        			label = "Export format :",
+					                	choices = c("PNG", "PDF", "SVG", "EPS"),
+					                	width = "200px"
+					    			)
+			    				),
+			    				column(4,
+			    					br(),
+					    			downloadButton(
+							    		outputId = "heatmap",
+							    		label = "Heatmap",
+							    		width = "100%"
+					    			)
+			    				)
+			    			)
 			    		)
 			    	)
 		    	)
@@ -322,9 +327,6 @@ server <- function(input, output, session){
 	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
-		if("private" %in% tolower(colnames(samples_data))){
-			samples_data["private"] <- NULL
-		}
 		tagList(
 			selectInput(
 				inputId = "meta_sample_x",
@@ -338,9 +340,6 @@ server <- function(input, output, session){
 	output$metadata_sample_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
-		if("private" %in% tolower(colnames(samples_data))){
-			samples_data["private"] <- NULL
-		}
 		tagList(
 			selectInput(
 				inputId = "meta_sample_col",
@@ -411,13 +410,15 @@ server <- function(input, output, session){
 
 	# Reset filters values
 	observeEvent(input$reset_samples_values, {
-		samples_data_table <- samples_data_table()
-		for ( i in 1:ncol(samples_data_table)) {
-        	updateSelectInput(
-        		session = session, 
-        		inputId = colnames(samples_data_table)[i],
-        		selected = "All"
-        	)
+		samples_data <- samples_data_table()
+		for ( i in 1:ncol(samples_data)) {
+			if (tolower(colnames(samples_data)[i]) != "sample_id") {
+	        	updateSelectInput(
+	        		session = session, 
+	        		inputId = colnames(samples_data)[i],
+	        		selected = "All"
+	        	)
+	        }
 		}
 	})
 	observeEvent(input$reset_genes_values, {
@@ -430,6 +431,16 @@ server <- function(input, output, session){
         	)
 		}
   	})
+	# Update Samples List (Select All)
+	observeEvent(input$select_all, {
+		samples_data <- samples_data_table()
+    	updateCheckboxGroupInput(
+    		session = session,
+			inputId = "sample_id",
+          	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+          	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])])
+    	)
+	})
   	observeEvent(input$reset_files, {
   		genes_list(NULL)
   		reset('files_panel')
@@ -444,44 +455,31 @@ server <- function(input, output, session){
 			genes_data_table <- genes_data_table()
 			tpms_data <- tpms_data_table()
 
-	    	# Filter private samples
-			if("private" %in% tolower(colnames(samples_data))){
-				samples_data["private"] <- NULL
-			}
-
 			# Apply samples filters
 			for ( i in 1:ncol(samples_data)) {
 				if (tolower(colnames(samples_data)[i]) == "sample_id") {
         			samples_data <- subset(samples_data, samples_data[,i] %in% input$sample_id)
-	        	} else {
+        		} else {
 					if (input[[colnames(samples_data)[i]]] != "All") {
 			    		samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
 					}
 				}
 			}
 
-			# Update other filters values
-			for ( j in 1:ncol(samples_data)) {
-				if (tolower(colnames(samples_data)[j]) != "sample_id") {
-					if (input[[colnames(samples_data)[j]]] == "All") {
+			for ( i in 1:ncol(samples_data)) {
+				if (tolower(colnames(samples_data)[i]) != "sample_id") {
+					if (input[[colnames(samples_data)[i]]] == "All") {
 					    updateSelectInput(
 					       	session = session, 
-					       	inputId = colnames(samples_data)[j],
-					       	choices = c("All", unique(samples_data[,j])),
+					       	inputId = colnames(samples_data)[i],
+					       	choices = c("All", unique(samples_data[,i])),
 					       	selected = "All"
 			    		)
 					}
 				}
-	    	}
+			}
 
-	    	updateCheckboxGroupInput(
-	    		session = session,
-				inputId = "sample_id",
-	    		label = NULL,
-	           	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
-	           	selected = as.character(samples_data[,1])
-
-	    	)
+			# Update dotplot inputs
 	    	updateSelectInput(
         		session = session,
         		inputId = "dotplot_sample1",
@@ -504,6 +502,17 @@ server <- function(input, output, session){
 		    for ( i in 1:ncol(genes_data_table)){
 		    	if (input[[colnames(genes_data_table)[i]]] != "All") {
 				    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+				}
+			}
+
+			for ( i in 1:ncol(genes_data_table)){
+		    	if (input[[colnames(genes_data_table)[i]]] == "All") {
+				    updateSelectInput(
+				       	session = session, 
+				       	inputId = colnames(final_table)[i],
+				       	choices = c("All", sort(unique(unlist(strsplit(as.character(final_table[,i]), ","))))),
+				       	selected = "All"
+		    		)
 				}
 			}
 
@@ -553,7 +562,7 @@ server <- function(input, output, session){
 		content = function(file){
 			final_table <- final_table()
 			genes_data_table <- genes_data_table()
-			samples_data_table <- samples_data_table()
+			samples_data <- samples_data_table()
 
 			boxplot_data<-final_table[,-c(2:length(genes_data_table))]
 			boxplot_choice<-"samples"
@@ -574,10 +583,10 @@ server <- function(input, output, session){
 				colnames(transpo_tpms) <- transpo_tpms[1,]
 
 				samples_id <- rownames(transpo_tpms[-1,])
-				samples_data_table <- samples_data_table[samples_data_table[["sample_id"]] %in% samples_id,]
+				samples_data <- samples_data[samples_data[["sample_id"]] %in% samples_id,]
 				
 				transpo_tpms <- data.frame(transpo_tpms[-1,], row.names=NULL)
-				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data_table[input$meta_sample_col], transpo_tpms)
+				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data[input$meta_sample_col], transpo_tpms)
 				melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
 
 				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_sample_x , col = input$meta_sample_col)	
