@@ -77,8 +77,10 @@ ui <- bootstrapPage(
 	tags$hr(),
 	# DataTable
 	fluidRow(
-		column(
-			width = 12,
+		column(2,
+			uiOutput("samples_id_filter")
+		),
+		column(10,
 			dataTableOutput('table')
 		)
 	)
@@ -88,44 +90,49 @@ ui <- bootstrapPage(
 # Server function
 server <- function(input, output, session){
 
-	# Import files
+	## Variable Initialisation	
+    final_table <- reactiveVal(0)
+    genes_list <- reactiveVal(value=NULL)
+
+
+	## Import Files
 	samples_data_table <- eventReactive(input$samples_data_file, {
         samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
+		if("private" %in% tolower(colnames(samples_data_table))){
+			samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+			samples_data_table["private"] <- NULL
+		}
+		samples_data_table
     })
-
     genes_data_table <- eventReactive(input$genes_data_file, {
         genes_data_file <- getDataFrameFromFile(input$genes_data_file$datapath)
         genes_data_table <- merge_duplicated_data(genes_data_file)
     })
-
     tpms_data_table <- eventReactive(input$tpms_file, {
         tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
     })
 
-    genes_list <- reactiveVal(value=NULL)
-    observeEvent(input$genes_list_file, {
-    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
-    })
 
-    final_table <- reactiveVal(0)
-
-	# Generate UI Samples Filters
+    ### Generate UI Filters
+	## Samples Filters
 	output$samples_filters <- renderUI({
-		samples_data_table <- samples_data_table()
+		samples_data <- samples_data_table()
 		tagList(
 			bsCollapsePanel(
 				title = h3("Samples Metadata Filters"),
 				fluidRow(
-			      	lapply(1:ncol(samples_data_table), function(i) {
-			      		column(3,
-							selectInput(
-			        			inputId = colnames(samples_data_table)[i],
-			        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data_table)[i])), " :"),
-			                	choices = c("All", sort(unique(samples_data_table[,i]))),
-			                	width = "200px",
-			                	selected = "All"
-			            	)
-			      		)
+			      	lapply(1:ncol(samples_data), function(i) {
+			      		if (tolower(colnames(samples_data)[i]) != "sample_id") {
+				      		column(3,
+								selectInput(
+				        			inputId = colnames(samples_data)[i],
+				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
+				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]),","))))),
+				                	width = "200px",
+				                	selected = "All"
+				            	)
+				      		)
+				      	}
 			      	})
 				),
 				fluidRow(
@@ -140,8 +147,7 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
-	# Generate UI Genes Filters
+	## Genes Filters
 	output$genes_filters <- renderUI({
 		genes_data_table <- genes_data_table()
 		tagList(
@@ -153,9 +159,9 @@ server <- function(input, output, session){
 							selectInput(
 			        			inputId = colnames(genes_data_table)[i],
 			        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
-			                	choices = c("All", sort(unique(genes_data_table[,i]))),
-			                	width = "200px",
-			                	selected = "All"
+			                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table[,i]), ","))))),
+			                	selected = "All",
+			                	width = "200px"				                
 							)
 						)
 					})
@@ -172,8 +178,7 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
-	# Graphs tab
+	## Graphs Panel
 	output$graphs_tab <- renderUI({
 		if(!is.null(input$tpms_file) && !is.null(input$genes_data_file) && !is.null(input$samples_data_file)){
 			tagList(
@@ -181,28 +186,6 @@ server <- function(input, output, session){
 			    	title = h3("Graphs"),
 			    	tabsetPanel(
 			    		type = "tabs",
-			    		tabPanel(
-			    			title = "Heatmap",
-			    			br(),
-			    			fluidRow(
-			    				column(8,
-					    			selectInput(
-					        			inputId = "heatmap_ext",
-					        			label = "Export format :",
-					                	choices = c("PNG", "PDF", "SVG", "EPS"),
-					                	width = "200px"
-					    			)
-			    				),
-			    				column(4,
-			    					br(),
-					    			downloadButton(
-							    		outputId = "heatmap",
-							    		label = "Heatmap",
-							    		width = "100%"
-					    			)
-			    				)
-			    			)
-			    		),
 			    		tabPanel(
 			    			title = "Boxplot",
 			    			br(),
@@ -289,13 +272,34 @@ server <- function(input, output, session){
 					    			)
 				    			)
 				    		)
+			    		),
+			    		tabPanel(
+			    			title = "Heatmap",
+			    			br(),
+			    			fluidRow(
+			    				column(8,
+					    			selectInput(
+					        			inputId = "heatmap_ext",
+					        			label = "Export format :",
+					                	choices = c("PNG", "PDF", "SVG", "EPS"),
+					                	width = "200px"
+					    			)
+			    				),
+			    				column(4,
+			    					br(),
+					    			downloadButton(
+							    		outputId = "heatmap",
+							    		label = "Heatmap",
+							    		width = "100%"
+					    			)
+			    				)
+			    			)
 			    		)
 			    	)
 		    	)
 			)
 		}
 	})
-
 	# Boxplot selected metadata
 	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
@@ -309,7 +313,6 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
 	output$metadata_sample_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
@@ -322,7 +325,6 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
 	output$metadata_gene_x <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
@@ -335,7 +337,6 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
 	output$metadata_gene_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
@@ -348,43 +349,70 @@ server <- function(input, output, session){
 			)
 		)
 	})
-
 	# Dotplot selected samples
 	output$dotplot_sample_one <- renderUI({
 		samples_data <- samples_data_table()
 		tagList(
 			selectInput(
-				inputId = "dotplot_sample1",
+				inputId = "dotplot_sample_x",
 				label = NULL,
 				choices = unique(samples_data[,1]),
 				width = "180px"
 			)
 		)
 	})
-
 	output$dotplot_sample_two <- renderUI({
 		samples_data <- samples_data_table()
 		tagList(
 			selectInput(
-				inputId = "dotplot_sample2",
+				inputId = "dotplot_sample_y",
 				label = NULL,
-				choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample1)),
+				choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample_x)),
 				width = "180px"
 			)
 		)
 	})
+	## Sample List
+	output$samples_id_filter <- renderUI({
+    	samples_data <- samples_data_table()
+    	wellPanel(
+    		style = paste0("overflow-y:auto; max-height: 700px"),
+    		HTML("<h4><b>Sample id :</h4></b>"),
+			hr(),
+			actionButton(
+				inputId = "select_all",
+				label = "Select all"
+			),
+	    	checkboxGroupInput(
+	    		inputId = "sample_id",
+	    		label = NULL,
+	           	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+	           	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+	        	width = "200px"
+			)
+		)
+    })
 
-	# Reset filters values
+
+	## Events
+	# Gene List
+    observeEvent(input$genes_list_file, {
+    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
+    })
+	# Reset Samples Filters Values
 	observeEvent(input$reset_samples_values, {
-		samples_data_table <- samples_data_table()
-		for ( i in 1:ncol(samples_data_table)) {
-        	updateSelectInput(
-        		session = session, 
-        		inputId = colnames(samples_data_table)[i],
-        		selected = "All"
-        	)
+		samples_data <- samples_data_table()
+		for ( i in 1:ncol(samples_data)) {
+			if (tolower(colnames(samples_data)[i]) != "sample_id") {
+	        	updateSelectInput(
+	        		session = session, 
+	        		inputId = colnames(samples_data)[i],
+	        		selected = "All"
+	        	)
+	        }
 		}
 	})
+	# Reset Genes Filters Values
 	observeEvent(input$reset_genes_values, {
 		genes_data_table <- genes_data_table()
 		for ( i in 1:ncol(genes_data_table)) {
@@ -395,11 +423,24 @@ server <- function(input, output, session){
         	)
 		}
   	})
+  	# Reset Files
   	observeEvent(input$reset_files, {
   		genes_list(NULL)
   		reset('files_panel')
   	})
+	# Update Samples List (Select All)
+	observeEvent(input$select_all, {
+		samples_data <- samples_data_table()
+    	updateCheckboxGroupInput(
+    		session = session,
+			inputId = "sample_id",
+          	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+          	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])])
+    	)
+	})
 
+
+	## Render
 	# DataTable
 	output$table <- renderDataTable(
 		{
@@ -407,36 +448,42 @@ server <- function(input, output, session){
 			genes_data_table <- genes_data_table()
 			tpms_data <- tpms_data_table()
 
-			# Apply filters
+			# Apply samples filters
 			for ( i in 1:ncol(samples_data)) {
-        		if (input[[colnames(samples_data)[i]]] != "All") {
-				    samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+				if (tolower(colnames(samples_data)[i]) == "sample_id") {
+        			samples_data <- subset(samples_data, samples_data[,i] %in% input$sample_id)
+        		} else {
+					if (input[[colnames(samples_data)[i]]] != "All") {
+			    		samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+					}
+				}
+			}
+			# Update other samples filters
+			for ( i in 1:ncol(samples_data)) {
+				if (tolower(colnames(samples_data)[i]) != "sample_id") {
+					if (input[[colnames(samples_data)[i]]] == "All") {
+					    updateSelectInput(
+					       	session = session, 
+					       	inputId = colnames(samples_data)[i],
+					       	choices = c("All", unique(samples_data[,i])),
+					       	selected = "All"
+			    		)
+					}
 				}
 			}
 
-			# Update other filters values
-			for ( j in 1:ncol(samples_data)) {
-				if ( input[[colnames(samples_data)[j]]] == "All") {
-				    updateSelectInput(
-				       	session = session, 
-				       	inputId = colnames(samples_data)[j],
-				       	choices = c("All", unique(samples_data[,j])),
-				       	selected = "All"
-		    		)
-				}
-	    	}
-
+			# Update dotplot inputs
 	    	updateSelectInput(
-        		session = session, 
-        		inputId = "dotplot_sample1",
+        		session = session,
+        		inputId = "dotplot_sample_x",
         		choices = unique(samples_data[,1]),
-        		selected = input$dotplot_sample1
+        		selected = input$dotplot_sample_x
         	)
         	updateSelectInput(
-        		session = session, 
-        		inputId = "dotplot_sample2",
-        		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample1)),
-        		selected = input$dotplot_sample2
+        		session = session,
+        		inputId = "dotplot_sample_y",
+        		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample_x)),
+        		selected = input$dotplot_sample_y
         	)
 
 	    	# Merge TPMS and genes metadata files according to filters
@@ -445,14 +492,23 @@ server <- function(input, output, session){
 		    merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
 		    final_table <- merged_genes_tpms
 
+		    # Apply genes filters
 		    for ( i in 1:ncol(genes_data_table)){
 		    	if (input[[colnames(genes_data_table)[i]]] != "All") {
-			    	for ( j in 1:nrow(genes_data_table)) {
-				    	final_table <- merged_genes_tpms[merged_genes_tpms[,i] == input[[colnames(genes_data_table)[i]]],]
-				    }
+				    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
 				}
 			}
-
+			# Update other genes filters
+			for ( i in 1:ncol(genes_data_table)){
+		    	if (input[[colnames(genes_data_table)[i]]] == "All") {
+				    updateSelectInput(
+				       	session = session, 
+				       	inputId = colnames(final_table)[i],
+				       	choices = c("All", sort(unique(unlist(strsplit(as.character(final_table[,i]), ","))))),
+				       	selected = "All"
+		    		)
+				}
+			}
 	    	# Update table by gene list file
 	    	genes_list <- genes_list()
 	    	if (length(genes_list) > 0) {
@@ -474,23 +530,6 @@ server <- function(input, output, session){
             scrollX = TRUE
         )
 	)
-
-	# Heatmap
-	output$heatmap <- downloadHandler (
-		filename = function() {
-			paste0("heatmap.", tolower(input$heatmap_ext))
-		},
-		content = function(file) {
-			final_table <- final_table()
-			tpms_data <- final_table[,-c(2:4)]
-			tpms_table <- tpms_data[,-1]
-			rownames(tpms_table) <- tpms_data[,1]
-			tpms_matrix <- data.matrix(tpms_table)
-
-			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext)
-		}
-  	)
-
   	# Boxplot
 	output$boxplot <- downloadHandler (		
 		filename = function() {
@@ -499,7 +538,7 @@ server <- function(input, output, session){
 		content = function(file){
 			final_table <- final_table()
 			genes_data_table <- genes_data_table()
-			samples_data_table <- samples_data_table()
+			samples_data <- samples_data_table()
 
 			boxplot_data<-final_table[,-c(2:length(genes_data_table))]
 			boxplot_choice<-"samples"
@@ -520,17 +559,16 @@ server <- function(input, output, session){
 				colnames(transpo_tpms) <- transpo_tpms[1,]
 
 				samples_id <- rownames(transpo_tpms[-1,])
-				samples_data_table <- samples_data_table[samples_data_table[["sample_id"]] %in% samples_id,]
+				samples_data <- samples_data[samples_data[["sample_id"]] %in% samples_id,]
 				
 				transpo_tpms <- data.frame(transpo_tpms[-1,], row.names=NULL)
-				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data_table[input$meta_sample_col], transpo_tpms)
+				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data[input$meta_sample_col], transpo_tpms)
 				melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
 
 				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_sample_x , col = input$meta_sample_col)	
 			}
 		}
   	)
-
   	# Dotplot
   	output$dotplot <- downloadHandler (	
 		filename = function() {
@@ -538,9 +576,24 @@ server <- function(input, output, session){
 		},
 		content = function(file){
 			final_table <- final_table()
-			buildDotplot(final_table, file, ext = input$dotplot_ext, x=input$dotplot_sample1, y=input$dotplot_sample2)
+			buildDotplot(final_table, file, ext = input$dotplot_ext, x=input$dotplot_sample_x, y=input$dotplot_sample_y)
 		}
 	)
+	# Heatmap
+	output$heatmap <- downloadHandler (
+		filename = function() {
+			paste0("heatmap.", tolower(input$heatmap_ext))
+		},
+		content = function(file) {
+			final_table <- final_table()
+			tpms_data <- final_table[,-c(2:4)]
+			tpms_table <- tpms_data[,-1]
+			rownames(tpms_table) <- tpms_data[,1]
+			tpms_matrix <- data.matrix(tpms_table)
+
+			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext)
+		}
+  	)
 }
 
 shinyApp(ui, server)
