@@ -1,7 +1,7 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape', 'data.table'))
 
 # Load packages
 library(shiny)
@@ -11,6 +11,10 @@ library(DT)
 library(gplots)
 library(Hmisc)
 library(reshape)
+library(data.table)
+
+# Load configurations
+source("shiny_app_conf.R", local = TRUE)
 
 # Load functions
 source("lib/merge_duplicated_data.R")
@@ -83,6 +87,13 @@ ui <- bootstrapPage(
 		column(10,
 			dataTableOutput('table')
 		)
+	),
+	fluidRow(
+		HTML(
+			'<footer id="footer">
+            	Copyright (c) 2018-2019 - Station Biologique de Roscoff - ABiMS
+            </footer>'
+		)
 	)
 )
 
@@ -99,7 +110,9 @@ server <- function(input, output, session){
 	samples_data_table <- eventReactive(input$samples_data_file, {
         samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
 		if("private" %in% tolower(colnames(samples_data_table))){
-			samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+			if(instance_tag == "public"){
+				samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+			}
 			samples_data_table["private"] <- NULL
 		}
 		samples_data_table
@@ -155,15 +168,17 @@ server <- function(input, output, session){
 				title = h3("Genes Metadata Filters"),
 				fluidRow(
 					lapply(1:ncol(genes_data_table), function(i) {
-						column(3,
-							selectInput(
-			        			inputId = colnames(genes_data_table)[i],
-			        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
-			                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table[,i]), ","))))),
-			                	selected = "All",
-			                	width = "200px"				                
+						if (tolower(colnames(genes_data_table)[i]) != "description") {
+							column(3,
+								selectInput(
+				        			inputId = colnames(genes_data_table)[i],
+				        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
+				                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table[,i]), ","))))),
+				                	selected = "All",
+				                	width = "200px"				                
+								)
 							)
-						)
+						}
 					})
 				),
 				fluidRow(
@@ -328,11 +343,12 @@ server <- function(input, output, session){
 	output$metadata_gene_x <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
+		genes_data_columns <- c(colnames(genes_data[colnames(genes_data) != "description"]))
 		tagList(
 			selectInput(
 				inputId = "meta_gene_x",
 				label = NULL,
-				choices = c(colnames(genes_data)),
+				choices = genes_data_columns,
 				width = "180px"
 			)
 		)
@@ -340,11 +356,12 @@ server <- function(input, output, session){
 	output$metadata_gene_col <- renderUI({
 		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
+		genes_data_columns <- c(colnames(genes_data[colnames(genes_data) != "description"]))
 		tagList(
 			selectInput(
 				inputId = "meta_gene_col",
 				label = NULL,
-				choices = subset(c(colnames(genes_data)), !(c(colnames(genes_data)) %in% input$meta_gene_x)),
+				choices = subset(genes_data_columns, !(genes_data_columns %in% input$meta_gene_x)),
 				width = "180px"
 			)
 		)
@@ -494,19 +511,23 @@ server <- function(input, output, session){
 
 		    # Apply genes filters
 		    for ( i in 1:ncol(genes_data_table)){
-		    	if (input[[colnames(genes_data_table)[i]]] != "All") {
-				    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+		    	if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
+			    	if (input[[colnames(genes_data_table)[i]]] != "All") {
+					    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+					}
 				}
 			}
 			# Update other genes filters
 			for ( i in 1:ncol(genes_data_table)){
-		    	if (input[[colnames(genes_data_table)[i]]] == "All") {
-				    updateSelectInput(
-				       	session = session, 
-				       	inputId = colnames(final_table)[i],
-				       	choices = c("All", sort(unique(unlist(strsplit(as.character(final_table[,i]), ","))))),
-				       	selected = "All"
-		    		)
+				if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
+			    	if (input[[colnames(genes_data_table)[i]]] == "All") {
+					    updateSelectInput(
+					       	session = session, 
+					       	inputId = colnames(final_table)[i],
+					       	choices = c("All", sort(unique(unlist(strsplit(as.character(final_table[,i]), ","))))),
+					       	selected = "All"
+			    		)
+					}
 				}
 			}
 	    	# Update table by gene list file
