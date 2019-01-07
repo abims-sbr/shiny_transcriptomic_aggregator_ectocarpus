@@ -1,20 +1,22 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
+# Update installed packages
+update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'gplots', 'Hmisc', 'reshape', 'data.table'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape'))
 
 # Load packages
 library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(DT)
+library(data.table)
 library(gplots)
 library(Hmisc)
 library(reshape)
-library(data.table)
 
 # Load configurations
-source("shiny_app_conf.R", local = TRUE)
+source("app-conf.R", local = TRUE)
 
 # Load functions
 source("lib/merge_duplicated_data.R")
@@ -26,6 +28,13 @@ source("lib/build_graphs.R")
 ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
 	useShinyjs(),
+	fluidRow(
+		HTML(
+			'<header id="header">
+            	Shiny Transcriptomic Aggregator
+            </header>'
+		)
+	),
 	br(),
 	fluidRow(
 		# Import Files Panel
@@ -140,7 +149,7 @@ server <- function(input, output, session){
 								selectInput(
 				        			inputId = colnames(samples_data)[i],
 				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
-				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]),","))))),
+				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
 				                	width = "200px",
 				                	selected = "All"
 				            	)
@@ -393,7 +402,7 @@ server <- function(input, output, session){
 	output$samples_id_filter <- renderUI({
     	samples_data <- samples_data_table()
     	wellPanel(
-    		style = paste0("overflow-y:auto; max-height: 700px"),
+    		style = paste0("overflow-y:auto; max-height: 650px"),
     		HTML("<h4><b>Sample id :</h4></b>"),
 			hr(),
 			actionButton(
@@ -471,7 +480,7 @@ server <- function(input, output, session){
         			samples_data <- subset(samples_data, samples_data[,i] %in% input$sample_id)
         		} else {
 					if (input[[colnames(samples_data)[i]]] != "All") {
-			    		samples_data <- samples_data[samples_data[i] == input[[colnames(samples_data)[i]]],]
+			    		samples_data <- samples_data[samples_data[,i] %like% input[[colnames(samples_data)[i]]],]
 					}
 				}
 			}
@@ -482,7 +491,7 @@ server <- function(input, output, session){
 					    updateSelectInput(
 					       	session = session, 
 					       	inputId = colnames(samples_data)[i],
-					       	choices = c("All", unique(samples_data[,i])),
+					       	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
 					       	selected = "All"
 			    		)
 					}
@@ -561,13 +570,11 @@ server <- function(input, output, session){
 			genes_data_table <- genes_data_table()
 			samples_data <- samples_data_table()
 
-			boxplot_data<-final_table[,-c(2:length(genes_data_table))]
-			boxplot_choice<-"samples"
+			boxplot_data<-final_table[!(colnames(final_table) %in% colnames(genes_data_table))]
 
 			if (input$metadata == "Genes"){
 				# Table for genes metadata
-				genes_for_boxplot <- boxplot_data[,-c(1)]
-				genes_for_boxplot <- cbind(genes_data_table[input$meta_gene_x],genes_data_table[input$meta_gene_col], genes_for_boxplot)
+				genes_for_boxplot <- cbind(genes_data_table[input$meta_gene_x],genes_data_table[input$meta_gene_col], boxplot_data)
 				melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
 	
 				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_gene_x , col = input$meta_gene_col)
@@ -577,13 +584,13 @@ server <- function(input, output, session){
 				transpo_tpms <- data.frame(t(boxplot_data))
 				factors <- sapply(transpo_tpms, is.factor)
 				transpo_tpms[factors] <- lapply(transpo_tpms[factors], as.character)
-				colnames(transpo_tpms) <- transpo_tpms[1,]
+				colnames(transpo_tpms) <- final_table[,1]
 
-				samples_id <- rownames(transpo_tpms[-1,])
+				samples_id <- rownames(transpo_tpms)
 				samples_data <- samples_data[samples_data[["sample_id"]] %in% samples_id,]
 				
-				transpo_tpms <- data.frame(transpo_tpms[-1,], row.names=NULL)
-				samples_for_boxplot <- cbind(samples_data_table[input$meta_sample_x],samples_data[input$meta_sample_col], transpo_tpms)
+				transpo_tpms <- data.frame(transpo_tpms, row.names=NULL)
+				samples_for_boxplot <- cbind(samples_data[input$meta_sample_x],samples_data[input$meta_sample_col], transpo_tpms)
 				melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
 
 				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_sample_x , col = input$meta_sample_col)	
@@ -607,9 +614,8 @@ server <- function(input, output, session){
 		},
 		content = function(file) {
 			final_table <- final_table()
-			tpms_data <- final_table[,-c(2:4)]
-			tpms_table <- tpms_data[,-1]
-			rownames(tpms_table) <- tpms_data[,1]
+			tpms_table <- final_table[!(colnames(final_table) %in% colnames(genes_data_table()))]
+			rownames(tpms_table) <- final_table[,1]
 			tpms_matrix <- data.matrix(tpms_table)
 
 			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext)
