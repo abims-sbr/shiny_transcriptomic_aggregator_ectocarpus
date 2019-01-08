@@ -16,7 +16,7 @@ library(Hmisc)
 library(reshape)
 
 # Load configurations
-source("app-conf.R", local = TRUE)
+#source("app-conf.R", local = TRUE)
 
 # Load functions
 source("lib/merge_duplicated_data.R")
@@ -567,14 +567,13 @@ server <- function(input, output, session){
 		},
 		content = function(file){
 			final_table <- final_table()
-			genes_data_table <- genes_data_table()
 			samples_data <- samples_data_table()
 
-			boxplot_data<-final_table[!(colnames(final_table) %in% colnames(genes_data_table))]
+			boxplot_data<-final_table[!(colnames(final_table) %in% colnames(genes_data_table()))]
 
 			if (input$metadata == "Genes"){
 				# Table for genes metadata
-				genes_for_boxplot <- cbind(genes_data_table[input$meta_gene_x],genes_data_table[input$meta_gene_col], boxplot_data)
+				genes_for_boxplot <- cbind(final_table[input$meta_gene_x],final_table[input$meta_gene_col], boxplot_data)
 				melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
 	
 				buildBoxplot(melted_data, file, ext = input$boxplot_ext, x = input$meta_gene_x , col = input$meta_gene_col)
