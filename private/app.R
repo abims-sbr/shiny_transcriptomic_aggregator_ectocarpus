@@ -1,7 +1,7 @@
 # Set default repo from CRAN
 options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
-update.packages(ask=FALSE, checkBuilt=TRUE)
+#update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
 install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape'))
 
@@ -10,13 +10,13 @@ library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(DT)
-library(data.table)
 library(gplots)
 library(Hmisc)
 library(reshape)
+library(data.table)
 
 # Load configurations
-#source("app-conf.R", local = TRUE)
+source("app-conf.R", local = TRUE)
 
 # Load functions
 source("lib/merge_duplicated_data.R")
@@ -29,11 +29,9 @@ ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
 	useShinyjs(),
 	fluidRow(
-		HTML(
-			'<header id="header">
-            	Shiny Transcriptomic Aggregator
-            </header>'
-		)
+		HTML('<header id="header"> Shiny Transcriptomic Aggregator - '),
+        app_title,
+        HTML('</header>')
 	),
 	br(),
 	fluidRow(
@@ -113,26 +111,64 @@ server <- function(input, output, session){
 	## Variable Initialisation	
     final_table <- reactiveVal(0)
     genes_list <- reactiveVal(value=NULL)
+    if(!is.null(tpms_input)){
+	    tpms_data_table <- reactiveVal(value=getDataFrameFromFile(tpms_input))
+    }
+    if(!is.null(genes_data_input)){
+    	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
+    }
+    if(!is.null(samples_data_input)){
+    	samples_data_table <- reactiveVal(value=getDataFrameFromFile(samples_data_input))
+	}
 
-
-	## Import Files
-	samples_data_table <- eventReactive(input$samples_data_file, {
-        samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
-		if("private" %in% tolower(colnames(samples_data_table))){
+	# TPMS
+    observeEvent(input$tpms_file, {
+    	tpms_data_table(getDataFrameFromFile(input$tpms_file$datapath))
+    })
+	# Genes Data
+    observeEvent(input$genes_data_file, {
+    	genes_data_file<-getDataFrameFromFile(input$genes_data_file$datapath)
+    	genes_data_table(merge_duplicated_data(genes_data_file))
+    })
+	# Samples Data
+    observeEvent(input$samples_data_file, {
+    	samples_data_file <- getDataFrameFromFile(input$samples_data_file$datapath)
+		if("private" %in% tolower(colnames(samples_data_file))){
 			if(instance_tag == "public"){
-				samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+				samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
 			}
-			samples_data_table["private"] <- NULL
+			samples_data_file["private"] <- NULL
 		}
-		samples_data_table
+		samples_data_table(samples_data_file)   	
     })
-    genes_data_table <- eventReactive(input$genes_data_file, {
-        genes_data_file <- getDataFrameFromFile(input$genes_data_file$datapath)
-        genes_data_table <- merge_duplicated_data(genes_data_file)
+    # Gene List
+    observeEvent(input$genes_list_file, {
+    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
     })
-    tpms_data_table <- eventReactive(input$tpms_file, {
-        tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
-    })
+
+	if(FALSE){
+	    tpms_data_table <- eventReactive(input$tpms_file, {
+	        tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
+	    })
+
+	    genes_data_table <- eventReactive(input$genes_data_file, {
+	        genes_data_file <- getDataFrameFromFile(input$genes_data_file$datapath)
+	        genes_data_table <- merge_duplicated_data(genes_data_file)
+	    })
+
+		#if(!is.null(samples_data_input)){
+
+		samples_data_table <- eventReactive(input$samples_data_file, {
+	        samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
+			if("private" %in% tolower(colnames(samples_data_table))){
+				if(instance_tag == "public"){
+					samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
+				}
+				samples_data_table["private"] <- NULL
+			}
+			samples_data_table
+	    })
+	}
 
 
     ### Generate UI Filters
@@ -421,10 +457,6 @@ server <- function(input, output, session){
 
 
 	## Events
-	# Gene List
-    observeEvent(input$genes_list_file, {
-    	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
-    })
 	# Reset Samples Filters Values
 	observeEvent(input$reset_samples_values, {
 		samples_data <- samples_data_table()
