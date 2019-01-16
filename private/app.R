@@ -30,7 +30,7 @@ ui <- bootstrapPage(
 	useShinyjs(),
 	fluidRow(
 		HTML('<header id="header"> Shiny Transcriptomic Aggregator - '),
-        app_title,
+        project,
         HTML('</header>')
 	),
 	br(),
