@@ -39,7 +39,6 @@ ui <- bootstrapPage(
 		column(3,
 			bsCollapse(
 				id = "files_panel",
-				open = "filters",
 				bsCollapsePanel(
 					title = h3("Import data"),
 					value = "filters",
@@ -217,7 +216,7 @@ server <- function(input, output, session){
 	})
 	## Graphs Panel
 	output$graphs_tab <- renderUI({
-		if(!is.null(input$tpms_file) && !is.null(input$genes_data_file) && !is.null(input$samples_data_file)){
+		if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 			tagList(
 				bsCollapsePanel(
 			    	title = h3("Graphs"),
