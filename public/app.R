@@ -39,7 +39,6 @@ ui <- bootstrapPage(
 		column(3,
 			bsCollapse(
 				id = "files_panel",
-				open = "filters",
 				bsCollapsePanel(
 					title = h3("Import data"),
 					value = "filters",
@@ -121,6 +120,7 @@ server <- function(input, output, session){
     	samples_data_table <- reactiveVal(value=getDataFrameFromFile(samples_data_input))
 	}
 
+	## Import files
 	# TPMS
     observeEvent(input$tpms_file, {
     	tpms_data_table(getDataFrameFromFile(input$tpms_file$datapath))
@@ -145,30 +145,6 @@ server <- function(input, output, session){
     observeEvent(input$genes_list_file, {
     	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
     })
-
-	if(FALSE){
-	    tpms_data_table <- eventReactive(input$tpms_file, {
-	        tpms_data_table <- getDataFrameFromFile(input$tpms_file$datapath)
-	    })
-
-	    genes_data_table <- eventReactive(input$genes_data_file, {
-	        genes_data_file <- getDataFrameFromFile(input$genes_data_file$datapath)
-	        genes_data_table <- merge_duplicated_data(genes_data_file)
-	    })
-
-		#if(!is.null(samples_data_input)){
-
-		samples_data_table <- eventReactive(input$samples_data_file, {
-	        samples_data_table <- getDataFrameFromFile(input$samples_data_file$datapath)
-			if("private" %in% tolower(colnames(samples_data_table))){
-				if(instance_tag == "public"){
-					samples_data_table <- samples_data_table[toupper(samples_data_table[,"private"]) == "FALSE",]
-				}
-				samples_data_table["private"] <- NULL
-			}
-			samples_data_table
-	    })
-	}
 
 
     ### Generate UI Filters
@@ -240,7 +216,7 @@ server <- function(input, output, session){
 	})
 	## Graphs Panel
 	output$graphs_tab <- renderUI({
-		if(!is.null(input$tpms_file) && !is.null(input$genes_data_file) && !is.null(input$samples_data_file)){
+		if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 			tagList(
 				bsCollapsePanel(
 			    	title = h3("Graphs"),
