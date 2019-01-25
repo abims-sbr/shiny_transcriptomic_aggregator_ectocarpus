@@ -41,3 +41,9 @@ br {
 	z-index: 1000;
 	text-align: center;
 }
+.shiny-notification {
+        width: 200px;
+        position: fixed;
+        top: calc(50%);
+        left: calc(50%);
+}

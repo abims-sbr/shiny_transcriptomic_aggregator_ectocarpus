@@ -27,6 +27,10 @@ source("lib/build_graphs.R")
 # User interface
 ui <- bootstrapPage(
 	includeCSS("static/css/styles.css"),
+	tags$style(type="text/css",
+		".shiny-output-error { visibility: hidden; }",
+		".shiny-output-error:before { visibility: hidden; }"
+	),
 	useShinyjs(),
 	fluidRow(
 		HTML('<header id="header"> Shiny Transcriptomic Aggregator - '),
@@ -476,12 +480,13 @@ server <- function(input, output, session){
 
 	## Render
 	# DataTable
-	output$table <- renderDataTable(
-		{
-        	samples_data <- samples_data_table()
-			genes_data_table <- genes_data_table()
-			tpms_data <- tpms_data_table()
+	output$table <- renderDataTable({
+    	samples_data <- samples_data_table()
+		genes_data_table <- genes_data_table()
+		tpms_data <- tpms_data_table()
 
+		withProgress(message = 'Making table', value = 0, {
+			incProgress(1/5, detail = paste("Apply samples filters"))
 			# Apply samples filters
 			for ( i in 1:ncol(samples_data)) {
 				if (tolower(colnames(samples_data)[i]) == "sample_id") {
@@ -492,6 +497,7 @@ server <- function(input, output, session){
 					}
 				}
 			}
+			incProgress(1/5, detail = paste("Update other samples filters"))				
 			# Update other samples filters
 			for ( i in 1:ncol(samples_data)) {
 				if (tolower(colnames(samples_data)[i]) != "sample_id") {
@@ -526,6 +532,7 @@ server <- function(input, output, session){
 		    merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
 		    final_table <- merged_genes_tpms
 
+			incProgress(1/5, detail = paste("Apply genes filters"))
 		    # Apply genes filters
 		    for ( i in 1:ncol(genes_data_table)){
 		    	if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
@@ -534,6 +541,7 @@ server <- function(input, output, session){
 					}
 				}
 			}
+			incProgress(1/5, detail = paste("Update other genes filters"))				
 			# Update other genes filters
 			for ( i in 1:ncol(genes_data_table)){
 				if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
@@ -547,15 +555,19 @@ server <- function(input, output, session){
 					}
 				}
 			}
+
 	    	# Update table by gene list file
 	    	genes_list <- genes_list()
 	    	if (length(genes_list) > 0) {
 	    		final_table <- subset(final_table, final_table[,1] %in% genes_list[[1]])	
 	    	}
 
-		    final_table(final_table)
-		    final_table
-		},
+		    incProgress(1/5, detail = paste("Building table"))
+    	})
+
+	    final_table(final_table)
+	    final_table
+	},
 		rownames = FALSE,
 	    extensions = c("Buttons", "FixedHeader"),
         options = list(
