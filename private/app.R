@@ -118,10 +118,18 @@ server <- function(input, output, session){
 	    tpms_data_table <- reactiveVal(value=getDataFrameFromFile(tpms_input))
     }
     if(!is.null(genes_data_input)){
-    	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
+    	genes_data_file <- getDataFrameFromFile(genes_data_input)
+    	genes_data_table <- reactiveVal(value=merge_duplicated_data(genes_data_file))
     }
     if(!is.null(samples_data_input)){
-    	samples_data_table <- reactiveVal(value=getDataFrameFromFile(samples_data_input))
+    	samples_data_file <- getDataFrameFromFile(samples_data_input)
+		if("private" %in% tolower(colnames(samples_data_file))){
+			if(instance_tag == "public"){
+				samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
+			}
+			samples_data_file["private"] <- NULL
+		}
+    	samples_data_table <- reactiveVal(value=samples_data_file)
 	}
 
 	## Import files

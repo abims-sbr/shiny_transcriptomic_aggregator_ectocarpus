@@ -1,35 +1,35 @@
-sample_id	strain	phenotype	sex	stage	generation
-GBP-3	Ec566meiotic	imm	ND	immature/mature	parthenosporophyte
-GBP-4	Ec566meiotic	imm	ND	immature/mature	parthenosporophyte
-GBP-5	Ec32	wt	male	immature/mature	gametophyte
-GBP-6	Ec32	wt	male	immature/mature	gametophyte
-GBP-7	Ec566meiotic	wt	ND	immature/mature	parthenosporophyte
-GBP-8	Ec566meiotic	wt	ND	immature/mature	parthenosporophyte
-GBP-9	Ec566meiotic	oro	ND	immature/mature	gametophyte
-GBP-10	Ec566meiotic	oro	ND	immature/mature	gametophyte
-GBP-11	Ec566meiotic	oro/imm	ND	immature/mature	gametophyte
-GBP-12	Ec566meiotic	oro/imm	ND	immature/mature	gametophyte
-GBP-16	Ec32	wt	male	immature	base
-GBP-17	Ec32	wt	male	immature	base
-GBP-18	Ec32	wt	male	immature	Up-rigth
-GBP-19	Ec32	wt	male	immature	Up-rigth
-GBP-20	Ec722	dis	male	immature/mature	parthenosporophyte
-GBP-21	Ec722	dis	male	immature/mature	parthenosporophyte
-GBP-22	Ec602	imm	female	immature	gametophyte
-GBP-23	Ec602	imm	female	immature	gametophyte
-GBP-24	Ec603	imm	male	immature	gametophyte
-GBP-25	Ec603	imm	male	immature	gametophyte
-GPO-1	Ec603	imm	male	mature	gametophyte
-GPO-2	Ec603	imm	male	mature	gametophyte
-GPO-3	Ec602	imm	female	mature	gametophyte
-GPO-4	Ec602	imm	female	mature	gametophyte
-GPO-30	Ec374	sam	male	immature/mature	gametophyte
-GPO-31	Ec374	sam	male	immature/mature	gametophyte
-GPO-32	Ec494	oro	male	immature/mature	gametophyte
-GPO-33	Ec494	oro	male	immature/mature	gametophyte
-GPO-34	Ec17	wt	male/female	immature/mature	sporophyte
-GPO-35	Ec17	wt	male/female	immature/mature	sporophyte
-GPO-36	Ec32	wt	male	unfused	gamete
-GPO-37	Ec32	wt	male	unfused	gamete
-GPO-160	Ec582	oro/oro	male/female	immature/mature	gametophyte
-GPO-161	Ec582	oro/oro	male/female	immature/mature	gametophyte
+sample_id	strain	phenotype	sex	stage	generation	replicats	private
+GBP-3	Ec566meiotic	imm	ND	immature/mature	parthenosporophyte	GBP-4	False
+GBP-4	Ec566meiotic	imm	ND	immature/mature	parthenosporophyte	GBP-3	False
+GBP-5	Ec32	wt	male	immature/mature	gametophyte	GBP-6	True
+GBP-6	Ec32	wt	male	immature/mature	gametophyte	GBP-5	True
+GBP-7	Ec566meiotic	wt	ND	immature/mature	parthenosporophyte	GBP-8	False
+GBP-8	Ec566meiotic	wt	ND	immature/mature	parthenosporophyte	GBP-7	False
+GBP-9	Ec566meiotic	oro	ND	immature/mature	gametophyte	GBP-10	True
+GBP-10	Ec566meiotic	oro	ND	immature/mature	gametophyte	GBP-9	True
+GBP-11	Ec566meiotic	oro/imm	ND	immature/mature	gametophyte	GBP-12	True
+GBP-12	Ec566meiotic	oro/imm	ND	immature/mature	gametophyte	GBP-11	True
+GBP-16	Ec32	wt	male	immature	base	GBP-17	False
+GBP-17	Ec32	wt	male	immature	base	GBP-16	False
+GBP-18	Ec32	wt	male	immature	Up-rigth	GBP-19	False
+GBP-19	Ec32	wt	male	immature	Up-rigth	GBP-18	False
+GBP-20	Ec722	dis	male	immature/mature	parthenosporophyte	GBP-21	False
+GBP-21	Ec722	dis	male	immature/mature	parthenosporophyte	GBP-20	False
+GBP-22	Ec602	imm	female	immature	gametophyte	GBP-23	False
+GBP-23	Ec602	imm	female	immature	gametophyte	GBP-22	False
+GBP-24	Ec603	imm	male	immature	gametophyte	GBP-25	False
+GBP-25	Ec603	imm	male	immature	gametophyte	GBP-24	False
+GPO-1	Ec603	imm	male	mature	gametophyte	GPO-2	False
+GPO-2	Ec603	imm	male	mature	gametophyte	GPO-1	False
+GPO-3	Ec602	imm	female	mature	gametophyte	GPO-4	False
+GPO-4	Ec602	imm	female	mature	gametophyte	GPO-3	False
+GPO-30	Ec374	sam	male	immature/mature	gametophyte	GPO-31	True
+GPO-31	Ec374	sam	male	immature/mature	gametophyte	GPO-30	True
+GPO-32	Ec494	oro	male	immature/mature	gametophyte	GPO-33	True
+GPO-33	Ec494	oro	male	immature/mature	gametophyte	GPO-32	True
+GPO-34	Ec17	wt	male/female	immature/mature	sporophyte	GPO-35	False
+GPO-35	Ec17	wt	male/female	immature/mature	sporophyte	GPO-34	False
+GPO-36	Ec32	wt	male	unfused	gamete	GPO-37	True
+GPO-37	Ec32	wt	male	unfused	gamete	GPO-36	True
+GPO-160	Ec582	oro/oro	male/female	immature/mature	gametophyte	GPO-161	True
+GPO-161	Ec582	oro/oro	male/female	immature/mature	gametophyte	GPO-160	True
