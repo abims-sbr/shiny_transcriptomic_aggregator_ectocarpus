@@ -10,6 +10,7 @@ library(shiny)
 library(shinyjs)
 library(shinyBS)
 library(DT)
+library(dplyr)
 library(gplots)
 library(Hmisc)
 library(reshape)
@@ -168,16 +169,18 @@ server <- function(input, output, session){
 				title = h3("Samples Metadata Filters"),
 				fluidRow(
 			      	lapply(1:ncol(samples_data), function(i) {
-			      		if (tolower(colnames(samples_data)[i]) != "sample_id") {
-				      		column(3,
-								selectInput(
-				        			inputId = colnames(samples_data)[i],
-				        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
-				                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
-				                	width = "200px",
-				                	selected = "All"
-				            	)
-				      		)
+			      		if (!(tolower(colnames(samples_data)[i]) %in% sample_col_blacklist)) {
+			      			if (tolower(colnames(samples_data)[i]) != "sample_id"){
+					      		column(3,
+									selectInput(
+					        			inputId = colnames(samples_data)[i],
+					        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
+					                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
+					                	width = "200px",
+					                	selected = "All"
+					            	)
+					      		)
+					      	}
 				      	}
 			      	})
 				),
@@ -433,6 +436,10 @@ server <- function(input, output, session){
 				inputId = "select_all",
 				label = "Select all"
 			),
+			actionButton(
+				inputId = "unselect_all",
+				label = "Unselect all"
+			),
 	    	checkboxGroupInput(
 	    		inputId = "sample_id",
 	    		label = NULL,
@@ -448,26 +455,28 @@ server <- function(input, output, session){
 	# Reset Samples Filters Values
 	observeEvent(input$reset_samples_values, {
 		samples_data <- samples_data_table()
-		for ( i in 1:ncol(samples_data)) {
-			if (tolower(colnames(samples_data)[i]) != "sample_id") {
-	        	updateSelectInput(
-	        		session = session, 
-	        		inputId = colnames(samples_data)[i],
-	        		selected = "All"
-	        	)
-	        }
-		}
+		lapply(1:ncol(samples_data), function(i){
+			if (!(tolower(colnames(samples_data)[i]) %in% sample_col_blacklist)) {
+				if (tolower(colnames(samples_data)[i]) != "sample_id") {
+		        	updateSelectInput(
+		        		session = session, 
+		        		inputId = colnames(samples_data)[i],
+		        		selected = "All"
+		        	)
+		        }
+		    }			
+		})
 	})
 	# Reset Genes Filters Values
 	observeEvent(input$reset_genes_values, {
 		genes_data_table <- genes_data_table()
-		for ( i in 1:ncol(genes_data_table)) {
+		lapply(1:ncol(genes_data_table), function(i){
         	updateSelectInput(
         		session = session, 
         		inputId = colnames(genes_data_table)[i],
         		selected = "All"
         	)
-		}
+		})
   	})
   	# Reset Files
   	observeEvent(input$reset_files, {
@@ -484,41 +493,58 @@ server <- function(input, output, session){
           	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])])
     	)
 	})
+	# Update Samples List (Unselect All)
+	observeEvent(input$unselect_all, {
+		samples_data <- samples_data_table()
+    	updateCheckboxGroupInput(
+    		session = session,
+			inputId = "sample_id",
+          	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
+          	selected = character(0)
+    	)
+	})	
 
 
 	## Render
 	# DataTable
 	output$table <- renderDataTable({
-    	samples_data <- samples_data_table()
+    	#samples_data <- samples_data_table()
+    	samples_metadata <- samples_data_table()
 		genes_data_table <- genes_data_table()
 		tpms_data <- tpms_data_table()
 
 		withProgress(message = 'Making table', value = 0, {
 			incProgress(1/5, detail = paste("Apply samples filters"))
 			# Apply samples filters
-			for ( i in 1:ncol(samples_data)) {
-				if (tolower(colnames(samples_data)[i]) == "sample_id") {
-        			samples_data <- subset(samples_data, samples_data[,i] %in% input$sample_id)
-        		} else {
-					if (input[[colnames(samples_data)[i]]] != "All") {
-			    		samples_data <- samples_data[samples_data[,i] %like% input[[colnames(samples_data)[i]]],]
+			samples_data <- lapply(1:ncol(samples_metadata), function(i){
+				if (!(tolower(colnames(samples_metadata)[i]) %in% sample_col_blacklist)) {
+					if (tolower(colnames(samples_metadata)[i]) == "sample_id") {
+						samples_data <- subset(samples_metadata, samples_metadata[,i] %in% input$sample_id)
+					} else {
+						if (input[[colnames(samples_metadata)[i]]] != "All") {
+						samples_data <- samples_metadata[samples_metadata[,i] %like% input[[colnames(samples_metadata)[i]]],]	
+						}
 					}
 				}
-			}
+			})
+			samples_data <- Reduce(intersect, Filter(Negate(is.null), samples_data))
+
 			incProgress(1/5, detail = paste("Update other samples filters"))				
 			# Update other samples filters
-			for ( i in 1:ncol(samples_data)) {
-				if (tolower(colnames(samples_data)[i]) != "sample_id") {
-					if (input[[colnames(samples_data)[i]]] == "All") {
-					    updateSelectInput(
-					       	session = session, 
-					       	inputId = colnames(samples_data)[i],
-					       	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
-					       	selected = "All"
-			    		)
+			lapply(1:ncol(samples_data), function(i){
+				if (!(tolower(colnames(samples_data)[i]) %in% sample_col_blacklist)) {
+					if (tolower(colnames(samples_data)[i]) != "sample_id") {
+						if (input[[colnames(samples_data)[i]]] == "All") {
+						    updateSelectInput(
+						       	session = session, 
+						       	inputId = colnames(samples_data)[i],
+						       	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data[,i]), ","))))),
+						       	selected = "All"
+				    		)
+						}
 					}
 				}
-			}
+			})
 
 			# Update dotplot inputs
 	    	updateSelectInput(
@@ -542,17 +568,21 @@ server <- function(input, output, session){
 
 			incProgress(1/5, detail = paste("Apply genes filters"))
 		    # Apply genes filters
-		    for ( i in 1:ncol(genes_data_table)){
-		    	if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
-			    	if (input[[colnames(genes_data_table)[i]]] != "All") {
-					    final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+		    final_table <- lapply(1:ncol(genes_data_table), function(i){
+				if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
+					if (input[[colnames(genes_data_table)[i]]] != "All") {
+						final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+					} else {
+						final_table <- merged_genes_tpms
 					}
 				}
-			}
+			})
+			final_table <- Reduce(intersect, Filter(Negate(is.null), final_table))
+
 			incProgress(1/5, detail = paste("Update other genes filters"))				
 			# Update other genes filters
-			for ( i in 1:ncol(genes_data_table)){
-				if (!(tolower(colnames(genes_data_table)[i]) %in% column_blacklist)) {
+			lapply(1:ncol(genes_data_table), function(i){
+				if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
 			    	if (input[[colnames(genes_data_table)[i]]] == "All") {
 					    updateSelectInput(
 					       	session = session, 
@@ -562,7 +592,7 @@ server <- function(input, output, session){
 			    		)
 					}
 				}
-			}
+			})
 
 	    	# Update table by gene list file
 	    	genes_list <- genes_list()
@@ -651,3 +681,27 @@ server <- function(input, output, session){
 }
 
 shinyApp(ui, server)
+
+gene_id <- tpms_data[1] # Supposing gene_id is the 1st column
+filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]]) # Supposing sample_id is the 1st column
+merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
+final_table <- merged_genes_tpms
+
+for ( i in 1:ncol(genes_data_table)){
+	if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
+    	if (tolower(colnames(genes_data_table)[i]) == "chr_id") {
+		    #final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
+		    final_table <- subset(merged_genes_tpms, merged_genes_tpms[,i] == "chr_00",)
+		}
+	}
+}
+
+test2 <- lapply(1:ncol(genes_data_table), function(i){
+	if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
+		if (tolower(colnames(genes_data_table)[i]) == "chr_id") {
+			final_table <- subset(merged_genes_tpms, merged_genes_tpms[,i] == "chr_00",)
+		}
+	}
+})
+Reduce(intersect, Filter(Negate(is.null), test2))
+
