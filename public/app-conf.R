@@ -3,11 +3,12 @@
 # Name of the project
 project <- "Ectocarpus"
 
-# Instance status
-instance_tag <- "public" 	#c("public", "private")
+# Instance status ("public" OR "private")
+instance_tag <- "public"
 
 # Columns to ignore in genes metadata file
-column_blacklist <- c("description", "content")
+gene_col_blacklist <- c("description", "content")
+sample_col_blacklist <- c("replicats")
 
 # Project Files
 tpms_input <- "real-data/TPMs.csv"
