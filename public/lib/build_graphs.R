@@ -1,5 +1,5 @@
 # Heatmap
-buildHeatmap <- function(matrix, file, ext){
+buildHeatmap <- function(matrix, file, ext, color){
 	if (ext == "PNG"){
 		png(file, width = 1500, height = 1000)
 	} else if (ext == "PDF") {
@@ -13,7 +13,7 @@ buildHeatmap <- function(matrix, file, ext){
 	print(	
 		heatmap.2(
 			scale(matrix, center=TRUE, scale=TRUE),
-			col=colorRampPalette(c("red","white","blue"))(10), 
+			col=color,
 			scale="row", 
 			margins=c(10,10), 
 			srtCol=45,  

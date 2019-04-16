@@ -13,6 +13,7 @@ library(DT)
 library(dplyr)
 library(gplots)
 library(Hmisc)
+library(RColorBrewer)
 library(reshape)
 library(data.table)
 
@@ -328,6 +329,15 @@ server <- function(input, output, session){
 			    			title = "Heatmap",
 			    			br(),
 			    			fluidRow(
+								# Color palette
+								selectInput(
+									inputId = "color",
+									label = "Color palette :",
+									choices = c(RedBlue="RdYlBu","YellowBlue","Blues"),
+									selected = "RedBlue"
+								)
+			    			),
+			    			fluidRow(
 			    				column(8,
 					    			selectInput(
 					        			inputId = "heatmap_ext",
@@ -354,7 +364,6 @@ server <- function(input, output, session){
 	# Boxplot selected metadata
 	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
-		genes_data <- genes_data_table()
 		tagList(
 			selectInput(
 				inputId = "meta_sample_x",
@@ -366,7 +375,6 @@ server <- function(input, output, session){
 	})
 	output$metadata_sample_col <- renderUI({
 		samples_data <- samples_data_table()
-		genes_data <- genes_data_table()
 		tagList(
 			selectInput(
 				inputId = "meta_sample_col",
@@ -377,7 +385,6 @@ server <- function(input, output, session){
 		)
 	})
 	output$metadata_gene_x <- renderUI({
-		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
 		genes_data_columns <- c(colnames(genes_data[colnames(genes_data) != "description"]))
 		tagList(
@@ -390,7 +397,6 @@ server <- function(input, output, session){
 		)
 	})
 	output$metadata_gene_col <- renderUI({
-		samples_data <- samples_data_table()
 		genes_data <- genes_data_table()
 		genes_data_columns <- c(colnames(genes_data[colnames(genes_data) != "description"]))
 		tagList(
@@ -404,23 +410,25 @@ server <- function(input, output, session){
 	})
 	# Dotplot selected samples
 	output$dotplot_sample_one <- renderUI({
-		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		final_table <- final_table()
 		tagList(
 			selectInput(
 				inputId = "dotplot_sample_x",
 				label = NULL,
-				choices = unique(samples_data[,1]),
+				choices = colnames(final_table[,-(1:ncol(genes_data))]),
 				width = "180px"
 			)
 		)
 	})
 	output$dotplot_sample_two <- renderUI({
-		samples_data <- samples_data_table()
+		genes_data <- genes_data_table()
+		final_table <- final_table()
 		tagList(
 			selectInput(
 				inputId = "dotplot_sample_y",
 				label = NULL,
-				choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample_x)),
+				choices = subset(colnames(final_table[,-(1:ncol(genes_data))]), !(colnames(final_table[,-(1:ncol(genes_data))]) %in% input$dotplot_sample_x )),
 				width = "180px"
 			)
 		)
@@ -508,7 +516,6 @@ server <- function(input, output, session){
 	## Render
 	# DataTable
 	output$table <- renderDataTable({
-    	#samples_data <- samples_data_table()
     	samples_metadata <- samples_data_table()
 		genes_data_table <- genes_data_table()
 		tpms_data <- tpms_data_table()
@@ -545,20 +552,6 @@ server <- function(input, output, session){
 					}
 				}
 			})
-
-			# Update dotplot inputs
-	    	updateSelectInput(
-        		session = session,
-        		inputId = "dotplot_sample_x",
-        		choices = unique(samples_data[,1]),
-        		selected = input$dotplot_sample_x
-        	)
-        	updateSelectInput(
-        		session = session,
-        		inputId = "dotplot_sample_y",
-        		choices = subset(unique(samples_data[,1]), !(unique(samples_data[,1]) %in% input$dotplot_sample_x)),
-        		selected = input$dotplot_sample_y
-        	)
 
 	    	# Merge TPMS and genes metadata files according to filters
 		    gene_id <- tpms_data[1] # Supposing gene_id is the 1st column
@@ -613,9 +606,18 @@ server <- function(input, output, session){
         	order = list(0, 'asc'),
         	fixedHeader = TRUE,
         	pageLength = 25,
-  			lengthMenu = c(10, 25, 50, 100, 200),
-            buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
-            scrollX = TRUE
+  			lengthMenu = list(c(10, 25, 50, 100, 200, -1),list("10","25","50","100","200","all")),
+            scrollX = TRUE,
+            buttons = list(
+            	'copy', 'csv', 'excel', 'print',
+            	list(extend = "pdf",
+            		pageSize="A4",
+            		filename = "table",
+            		header=TRUE,
+            		title=NULL,
+            		orientation="landscape"
+            	)
+            )
         )
 	)
   	# Boxplot
@@ -675,33 +677,25 @@ server <- function(input, output, session){
 			rownames(tpms_table) <- final_table[,1]
 			tpms_matrix <- data.matrix(tpms_table)
 
-			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext)
+			if(input$color == "YellowBlue"){
+				color_palette <- colorRampPalette(c("#FFCE00","#FFFFFF","#6B8BA3"))(10)
+			} else {
+				color_palette <- brewer.pal(10,input$color)
+			}
+
+			buildHeatmap(tpms_matrix, file, ext = input$heatmap_ext, color = color_palette)
 		}
   	)
 }
 
 shinyApp(ui, server)
 
-gene_id <- tpms_data[1] # Supposing gene_id is the 1st column
-filtered_tpms_data <- cbind(gene_id, tpms_data[colnames(tpms_data) %in% samples_data[,1]]) # Supposing sample_id is the 1st column
-merged_genes_tpms <- merge(genes_data_table, filtered_tpms_data, by=colnames(genes_data_table[1]))
-final_table <- merged_genes_tpms
-
-for ( i in 1:ncol(genes_data_table)){
-	if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
-    	if (tolower(colnames(genes_data_table)[i]) == "chr_id") {
-		    #final_table <- merged_genes_tpms[merged_genes_tpms[,i] %like% input[[colnames(genes_data_table)[i]]],]
-		    final_table <- subset(merged_genes_tpms, merged_genes_tpms[,i] == "chr_00",)
-		}
-	}
-}
-
-test2 <- lapply(1:ncol(genes_data_table), function(i){
-	if (!(tolower(colnames(genes_data_table)[i]) %in% gene_col_blacklist)) {
-		if (tolower(colnames(genes_data_table)[i]) == "chr_id") {
-			final_table <- subset(merged_genes_tpms, merged_genes_tpms[,i] == "chr_00",)
-		}
-	}
-})
-Reduce(intersect, Filter(Negate(is.null), test2))
-
+# Création d'une colonne nom complet
+samples_data_table$sname <- do.call(paste, c(samples_data_table[cols], sep=":"))
+# Déplace la nouvelle colonne en première colonne
+samples_data_table <- samples_data_table %>% select(sname, everything())
+# Renommage des samples selon les nouveaux noms dans tpms
+names(tpms_data_table) <- samples_data_table$sname[match(names(tpms_data_table), samples_data_table$sample_id)]
+# Suppression de la colonne sample_id et renommage de la nouvelle colonne
+samples_data_table$sample_id <- NULL
+names(samples_data_table)[names(samples_data_table)=="sname"]<-"sample_id"
