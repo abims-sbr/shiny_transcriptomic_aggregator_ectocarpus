@@ -1,23 +1,23 @@
 # Set default repo from CRAN
-options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
+#options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
+#install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
 
 
 # Load packages
 library(shiny)
 library(shinyjs)
 library(shinyBS)
+library(data.table)
 library(DT)
-library(dplyr)
 library(gplots)
 library(Hmisc)
 library(RColorBrewer)
-library(rlist)
 library(reshape)
-library(data.table)
+library(rlist)
+library(dplyr)
 
 # Load configurations
 source("app-conf.R", local = TRUE)
@@ -709,13 +709,3 @@ server <- function(input, output, session){
 }
 
 shinyApp(ui, server)
-
-# Création d'une colonne nom complet
-samples_data_table$sname <- do.call(paste, c(samples_data_table[cols], sep=":"))
-# Déplace la nouvelle colonne en première colonne
-samples_data_table <- samples_data_table %>% select(sname, everything())
-# Renommage des samples selon les nouveaux noms dans tpms
-names(tpms_data_table) <- samples_data_table$sname[match(names(tpms_data_table), samples_data_table$sample_id)]
-# Suppression de la colonne sample_id et renommage de la nouvelle colonne
-samples_data_table$sample_id <- NULL
-names(samples_data_table)[names(samples_data_table)=="sname"]<-"sample_id"
