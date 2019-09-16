@@ -1,9 +1,10 @@
 # Set default repo from CRAN
-#options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
+options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-#install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape'))
+install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
+
 
 # Load packages
 library(shiny)
@@ -14,6 +15,7 @@ library(dplyr)
 library(gplots)
 library(Hmisc)
 library(RColorBrewer)
+library(rlist)
 library(reshape)
 library(data.table)
 
@@ -271,6 +273,15 @@ server <- function(input, output, session){
 						    			uiOutput("metadata_gene_col")
 						    		)
 					    		)
+					    	),
+					    	fluidRow(
+					    		column(12,
+						    		checkboxInput(
+						    			inputId = "use_replicats",
+						    			label = "Mean by replicats",
+										value = FALSE
+						    		)
+						    	)
 					    	),
 					    	hr(),
 					    	fluidRow(
@@ -631,7 +642,16 @@ server <- function(input, output, session){
 
 			boxplot_data<-final_table[!(colnames(final_table) %in% colnames(genes_data_table()))]
 
-			if (input$metadata == "Genes"){
+			if (input$use_replicats == TRUE) {
+				# Make mean table from replicats
+				rows_mean <- lapply(1:ncol(boxplot_data), function(i){
+					rows_mean <- rowMeans(boxplot_data[,c(samples_data[i,"sample_id"], samples_data[i,"replicats"])])
+				})
+				names(rows_mean) <- samples_data[,"sample_id"]
+				boxplot_data <- as.data.frame(list.cbind(rows_mean))		
+			}
+
+			if (input$metadata == "Genes") {
 				# Table for genes metadata
 				genes_for_boxplot <- cbind(final_table[input$meta_gene_x],final_table[input$meta_gene_col], boxplot_data)
 				melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
