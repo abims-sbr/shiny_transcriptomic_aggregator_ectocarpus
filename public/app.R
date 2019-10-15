@@ -157,6 +157,7 @@ server <- function(input, output, session){
 		}
 		samples_data_table(samples_data_file)   	
     })
+
     # Gene List
     observeEvent(input$genes_list_file, {
     	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
@@ -375,11 +376,15 @@ server <- function(input, output, session){
 	# Boxplot selected metadata
 	output$metadata_sample_x <- renderUI({
 		samples_data <- samples_data_table()
+		x_metadata <- subset(c(colnames(samples_data)),!(c(colnames(samples_data)) %in% sample_col_blacklist))
+		if (input$use_replicats == TRUE) {
+			x_metadata <- subset(x_metadata, x_metadata != colnames(samples_data[1]))
+		}
 		tagList(
 			selectInput(
 				inputId = "meta_sample_x",
 				label = NULL,
-				choices = c(colnames(samples_data)),
+				choices = x_metadata,
 				width = "180px"
 			)
 		)
@@ -390,7 +395,7 @@ server <- function(input, output, session){
 			selectInput(
 				inputId = "meta_sample_col",
 				label = NULL,
-				choices = subset(c(colnames(samples_data)), !(c(colnames(samples_data)) %in% input$meta_sample_x)),
+				choices = subset(c(colnames(samples_data)), !((c(colnames(samples_data)) %in% input$meta_sample_x) | (c(colnames(samples_data)) %in% sample_col_blacklist))),
 				width = "180px"
 			)
 		)
@@ -446,25 +451,33 @@ server <- function(input, output, session){
 	})
 	## Sample List
 	output$samples_id_filter <- renderUI({
-    	samples_data <- samples_data_table()
+		samples_data <- samples_data_table()
+		samples_ids <- list(as.character(samples_data[,1]))
+		samples_names <- list(as.character(samples_data[,1]))
+		if ("sample_name" %in% colnames(samples_data_file)) {
+			samples_names <- list(paste0(as.character(samples_data[,1]),"-",as.character(samples_data[,"sample_name"])))
+		}
     	wellPanel(
-    		style = paste0("overflow-y:auto; max-height: 650px"),
+    		style = paste0("overflow-y:auto; max-height: 600px"),
     		HTML("<h4><b>Sample id :</h4></b>"),
 			hr(),
 			actionButton(
 				inputId = "select_all",
-				label = "Select all"
+				label = "Select all",
+				widht = "50%"
 			),
 			actionButton(
 				inputId = "unselect_all",
-				label = "Unselect all"
+				label = "Unselect all",
+				widht = "50%"
 			),
 	    	checkboxGroupInput(
 	    		inputId = "sample_id",
 	    		label = NULL,
-	           	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
-	           	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
-	        	width = "200px"
+				choiceNames = samples_names[[1]],
+				choiceValues = samples_ids[[1]],
+				selected = samples_ids[[1]],
+				width = "200px"
 			)
 		)
     })
@@ -505,22 +518,34 @@ server <- function(input, output, session){
 	# Update Samples List (Select All)
 	observeEvent(input$select_all, {
 		samples_data <- samples_data_table()
+		samples_ids <- list(as.character(samples_data[,1]))
+    	samples_names <- list(as.character(samples_data[,1]))
+    	if ("sample_name" %in% colnames(samples_data_file)) {
+	    	samples_names <- list(paste0(as.character(samples_data[,1]),"-",as.character(samples_data[,"sample_name"])))
+		}
     	updateCheckboxGroupInput(
     		session = session,
 			inputId = "sample_id",
-          	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
-          	selected = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])])
-    	)
+			choiceNames = samples_names[[1]],
+			choiceValues = samples_ids[[1]],
+			selected = samples_ids[[1]]
+        )
 	})
 	# Update Samples List (Unselect All)
 	observeEvent(input$unselect_all, {
 		samples_data <- samples_data_table()
+		samples_ids <- list(as.character(samples_data[,1]))
+		samples_names <- list(as.character(samples_data[,1]))
+		if ("sample_name" %in% colnames(samples_data_file)) {
+			samples_names <- list(paste0(as.character(samples_data[,1]),"-",as.character(samples_data[,"sample_name"])))
+		}
     	updateCheckboxGroupInput(
     		session = session,
 			inputId = "sample_id",
-          	choices = as.character(samples_data[,1][order(nchar(samples_data[,1]), samples_data[,1])]),
-          	selected = character(0)
-    	)
+			choiceNames = samples_names[[1]],
+			choiceValues = samples_ids[[1]],
+			selected = character(0)
+        )
 	})	
 
 
@@ -540,7 +565,7 @@ server <- function(input, output, session){
 						samples_data <- subset(samples_metadata, samples_metadata[,i] %in% input$sample_id)
 					} else {
 						if (input[[colnames(samples_metadata)[i]]] != "All") {
-						samples_data <- samples_metadata[samples_metadata[,i] %like% input[[colnames(samples_metadata)[i]]],]	
+							samples_data <- samples_metadata[(samples_metadata[,i] %like% paste0("^",input[[colnames(samples_metadata)[i]]])) | (samples_metadata[,i] %like% paste0("/",input[[colnames(samples_metadata)[i]]])),]
 						}
 					}
 				}
