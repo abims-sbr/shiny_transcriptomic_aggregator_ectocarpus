@@ -21,19 +21,19 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 
 1. Install `gdebi` :
 
-`sudo apt-get install gdebi-core`
+	`sudo apt-get install gdebi-core`
 
 2. Download Shiny Server
 
-`wget https://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.5.6.875-amd64.deb`
+	`wget https://download3.rstudio.org/ubuntu-12.04/x86_64/shiny-server-1.5.6.875-amd64.deb`
 
 3. Use `gdebi` to install the Shiny Server package :
 
-`sudo gdebi shiny-server-1.5.6.875-amd64.deb`
+	`sudo gdebi shiny-server-1.5.6.875-amd64.deb`
 
 4. The `shiny-server` service should start automatically. Check its status :
 
-`sudo systemctl status shiny-server.service`
+	`sudo systemctl status shiny-server.service`
 
 5. In a browser, navigate to your public IP address or FQDN on port `3838` (e.g. `example.com:3838`). You should see the Shiny Server welcome page:
 
@@ -44,8 +44,8 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 
 - Clone the application repository from https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus/ in `/srv/shiny-server/` :
 
-`cd /srv/shiny-server/`
-`git clone https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus.git`
+	`cd /srv/shiny-server/`
+	`git clone https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus.git`
 
 
 
