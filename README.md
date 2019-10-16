@@ -45,6 +45,7 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 - Clone the application repository from https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus/ in `/srv/shiny-server/` :
 
 	`cd /srv/shiny-server/`
+	
 	`git clone https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus.git`
 
 
