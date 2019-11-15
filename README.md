@@ -136,9 +136,9 @@ project <- "Project Name"
 instance_tag <- "public"
 
 # Project Files
-tpms_input <- "real-data/TPMs.csv"
-genes_data_input <- "real-data/Genes_data.csv"
-samples_data_input <- "real-data/Samples_data.csv"
+tpms_input <- "data/TPMs.csv"
+genes_data_input <- "data/Genes_data.csv"
+samples_data_input <- "data/Samples_data.csv"
 
 # Columns to ignore in metadata file
 gene_col_blacklist <- c("description", "content")
