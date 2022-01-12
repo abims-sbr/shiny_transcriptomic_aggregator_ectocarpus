@@ -41,6 +41,12 @@ br {
 	z-index: 1000;
 	text-align: center;
 }
+
+.skin-blue .main-header .logo { background-color: #3c8dbc; }
+.skin-blue .main-header .logo:hover { background-color: #3c8dbc; }
+
+.shiny-output-error { visibility: hidden; }
+.shiny-output-error:before { visibility: hidden; }
 .shiny-notification {
         width: 200px;
         position: fixed;

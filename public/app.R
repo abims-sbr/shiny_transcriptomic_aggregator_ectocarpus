@@ -1,13 +1,14 @@
 # Set default repo from CRAN
-#options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
+options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
-#update.packages(ask=FALSE, checkBuilt=TRUE)
+update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-#install.packages(c('shiny', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
 
 
 # Load packages
 library(shiny)
+library(shinydashboard)
 library(shinyjs)
 library(shinyBS)
 library(data.table)
@@ -29,88 +30,45 @@ source("lib/build_graphs.R")
 
 
 # User interface
-ui <- bootstrapPage(
-	includeCSS("static/css/styles.css"),
-	tags$style(type="text/css",
-		".shiny-output-error { visibility: hidden; }",
-		".shiny-output-error:before { visibility: hidden; }"
-	),
-	useShinyjs(),
-	fluidRow(
-		HTML('<header id="header"> Shiny Transcriptomic Aggregator - '),
-        project,
-        HTML('</header>')
-	),
-	br(),
-	fluidRow(
-		# Import Files Panel
-		column(3,
-			bsCollapse(
-				id = "files_panel",
-				bsCollapsePanel(
-					title = h3("Import data"),
-					value = "filters",
-				 	fileInput(
-				   		inputId = "tpms_file", 
-				   		label = "Import TPMs File (.csv)",
-				        multiple = FALSE,
-				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
-				        width = "100%"
-				    ),
-				   	fileInput(
-				   		inputId = "genes_data_file", 
-				   		label = "Import Genes Data File (.csv)",
-				        multiple = FALSE,
-				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
-				        width = "100%"
-				    ),
-				  	fileInput(
-				   		inputId = "samples_data_file", 
-				   		label = "Import Samples Data File (.csv)",
-				        multiple = FALSE,
-				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
-				        width = "100%"
-				    ),
-				    fileInput(
-				   		inputId = "genes_list_file", 
-				   		label = "Import Genes List (.txt/.csv) [OPTIONAL]",
-				        multiple = FALSE,
-				        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
-				        width = "100%"
-				    ),
-				    actionButton(
-				    	inputId = "reset_files",
-				    	label = "Reset"
-				    )
-			    )
-		    ),
-			uiOutput("graphs_tab")		    
-		),
-		# Filters Panels
-		column(9,
-			uiOutput("samples_filters"),
-			uiOutput("genes_filters")
+ui <- dashboardPage(
+	dashboardHeader(title = HTML(paste0("Shiny Transcriptomic Aggregator - ", project)), titleWidth = 450),
+	dashboardSidebar(
+		sidebarMenu(id = "tabs",
+			menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
+			menuItem("Input data", tabName = "input_tab", icon = icon("file-import")),
+			menuItem("Table", tabName = "table_tab", icon = icon("table")),
+			menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
+			menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
+			menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
+			menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar"))
 		)
 	),
-	tags$hr(),
-	# DataTable
-	fluidRow(
-		column(2,
-			uiOutput("samples_id_filter")
+	dashboardBody(
+		useShinyjs(),
+#		includeCSS("static/css/styles.css"),
+		# Header
+		tags$head(
+			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
 		),
-		column(10,
-			dataTableOutput('table')
+		tabItems(
+			source("guide_ui.R", local = TRUE)$value,
+			source("input_ui.R", local = TRUE)$value,
+			source("table_ui.R", local = TRUE)$value,
+			source("barplot_ui.R", local = TRUE)$value,
+			source("boxplot_ui.R", local = TRUE)$value,
+			source("dotplot_ui.R", local = TRUE)$value,
+			source("heatmap_ui.R", local = TRUE)$value
 		)
 	),
-	fluidRow(
+	# Footer
+	tags$footer(
 		HTML(
-			'<footer id="footer">
+			'<p>
             	Copyright (c) 2018-2019 - Station Biologique de Roscoff - ABiMS
-            </footer>'
+            </p>'
 		)
 	)
 )
-
 
 # Server function
 server <- function(input, output, session){
@@ -174,7 +132,7 @@ server <- function(input, output, session){
 			      	lapply(1:ncol(samples_data), function(i) {
 			      		if (!(tolower(colnames(samples_data)[i]) %in% sample_col_blacklist)) {
 			      			if (tolower(colnames(samples_data)[i]) != "sample_id"){
-					      		column(3,
+					      		column(4,
 									selectInput(
 					        			inputId = colnames(samples_data)[i],
 					        			label = paste0(capitalize(gsub("_", " ", colnames(samples_data)[i])), " :"),
@@ -208,7 +166,7 @@ server <- function(input, output, session){
 				fluidRow(
 					lapply(1:ncol(genes_data_table), function(i) {
 						if (tolower(colnames(genes_data_table)[i]) != "description") {
-							column(3,
+							column(4,
 								selectInput(
 				        			inputId = colnames(genes_data_table)[i],
 				        			label = paste0(capitalize(gsub("_", " ", colnames(genes_data_table)[i])), " :"),
@@ -233,141 +191,130 @@ server <- function(input, output, session){
 		)
 	})
 	## Graphs Panel
-	output$graphs_tab <- renderUI({
+	output$boxplot_tab <- renderUI({
 		if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 			tagList(
-				bsCollapsePanel(
-			    	title = h3("Graphs"),
-			    	tabsetPanel(
-			    		type = "tabs",
-			    		tabPanel(
-			    			title = "Boxplot",
-			    			br(),
-			    			selectInput(
-      							inputId = "metadata",
-      							label = "Metadata",
-      							choices = c("Samples", "Genes")
-    						),
-				    		fluidRow(
-				    			conditionalPanel(
-    								condition = "input.metadata == 'Samples'",
-				    				column(6,
-				    					h4("X Metadata :"),
-						    			uiOutput("metadata_sample_x")
-						    		),
-					    			# Y Metadata : log2(TPMs)
-					    			column(6,
-						    			h4("Color by :"),
-						    			uiOutput("metadata_sample_col")
-						    		)
-					    		),
-					    		conditionalPanel(
-    								condition = "input.metadata == 'Genes'",
-				    				column(6,
-				    					h4("X Metadata :"),
-						    			uiOutput("metadata_gene_x")
-						    		),
-					    			# Y Metadata : log2(TPMs)
-					    			column(6,
-						    			h4("Color by :"),
-						    			uiOutput("metadata_gene_col")
-						    		)
-					    		)
-					    	),
-					    	fluidRow(
-					    		column(12,
-						    		checkboxInput(
-						    			inputId = "use_replicats",
-						    			label = "Mean by replicats",
-										value = FALSE
-						    		)
-						    	)
-					    	),
-					    	hr(),
-					    	fluidRow(
-					    		column(8,
-							    	selectInput(
-					        			inputId = "boxplot_ext",
-					        			label = "Export format :",
-					                	choices = c("PNG", "PDF", "SVG", "EPS"),
-					                	width = "200px"
-					    			)
-					    		),
-					    		column(4,
-					    			br(),
-							    	downloadButton(
-							    		outputId = "boxplot",
-							    		label = "Boxplot",
-							    		width = "100%"
-					    			)
-					    		)
-					    	)
+				selectInput(
+						inputId = "metadata",
+						label = "Metadata",
+						choices = c("Samples", "Genes")
+				),
+	    		fluidRow(
+	    			conditionalPanel(
+						condition = "input.metadata == 'Samples'",
+	    				column(6,
+			    			uiOutput("metadata_sample_x")
 			    		),
-			    		tabPanel(
-			    			title = "Dotplot",
-			    			br(),
-			    			fluidRow(
-			    				column(6,
-			    					h4("X sample :"),
-					    			uiOutput("dotplot_sample_one")
-					    		),
-					    		column(6,
-					    			h4("Y sample :"),
-					    			uiOutput("dotplot_sample_two")
-					    		)
-				    		),
-				    		hr(),
-				    		fluidRow(
-				    			column(8,
-					    			selectInput(
-					        			inputId = "dotplot_ext",
-					        			label = "Export format :",
-					                	choices = c("PNG", "PDF", "SVG", "EPS"),
-					                	width = "200px"
-					    			)
-				    			),
-				    			column(4,
-				    				br(),
-							    	downloadButton(
-							    		outputId = "dotplot",
-							    		label = "Dotplot",
-							    		width = "100%"
-					    			)
-				    			)
-				    		)
+		    			# Y Metadata : log2(TPMs)
+		    			column(6,
+			    			uiOutput("metadata_sample_col")
+			    		)
+		    		),
+		    		conditionalPanel(
+						condition = "input.metadata == 'Genes'",
+	    				column(6,
+			    			uiOutput("metadata_gene_x")
 			    		),
-			    		tabPanel(
-			    			title = "Heatmap",
-			    			br(),
-			    			fluidRow(
-								# Color palette
-								selectInput(
-									inputId = "color",
-									label = "Color palette :",
-									choices = c(RedBlue="RdYlBu","YellowBlue","Blues"),
-									selected = "RedBlue"
-								)
-			    			),
-			    			fluidRow(
-			    				column(8,
-					    			selectInput(
-					        			inputId = "heatmap_ext",
-					        			label = "Export format :",
-					                	choices = c("PNG", "PDF", "SVG", "EPS"),
-					                	width = "200px"
-					    			)
-			    				),
-			    				column(4,
-			    					br(),
-					    			downloadButton(
-							    		outputId = "heatmap",
-							    		label = "Heatmap",
-							    		width = "100%"
-					    			)
-			    				)
-			    			)
+		    			# Y Metadata : log2(TPMs)
+		    			column(6,
+			    			uiOutput("metadata_gene_col")
+			    		)
+		    		)
+		    	),
+		    	fluidRow(
+		    		column(12,
+			    		checkboxInput(
+			    			inputId = "use_replicats",
+			    			label = "Mean by replicats",
+							value = FALSE
 			    		)
 			    	)
+		    	),
+		    	hr(),
+		    	fluidRow(
+		    		column(8,
+				    	selectInput(
+		        			inputId = "boxplot_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+		    		),
+		    		column(4,
+		    			br(),
+				    	downloadButton(
+				    		outputId = "boxplot",
+				    		label = "Boxplot",
+				    		width = "100%"
+		    			)
+		    		)
+			    )
+			)
+		}
+	})
+	output$dotplot_tab <- renderUI({
+		if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
+			tagList(
+    			fluidRow(
+    				column(6,
+		    			uiOutput("dotplot_sample_one")
+		    		),
+		    		column(6,
+		    			uiOutput("dotplot_sample_two")
+		    		)
+	    		),
+	    		fluidRow(
+	    			column(8,
+		    			selectInput(
+		        			inputId = "dotplot_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+	    			),
+	    			column(4,
+	    				br(),
+				    	downloadButton(
+				    		outputId = "dotplot",
+				    		label = "Dotplot",
+				    		width = "100%"
+		    			)
+			    	)
+			    )
+			)
+		}
+	})
+	output$heatmap_tab <- renderUI({
+		if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
+			tagList(
+    			fluidRow(
+					# Color palette
+					column(12,
+						selectInput(
+							inputId = "color",
+							label = "Color palette :",
+							choices = c(RedBlue="RdYlBu","YellowBlue","Blues"),
+							selected = "RedBlue"
+						)
+					)
+    			),
+    			fluidRow(
+    				column(8,
+		    			selectInput(
+		        			inputId = "heatmap_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+    				),
+    				column(4,
+    					br(),
+		    			downloadButton(
+				    		outputId = "heatmap",
+				    		label = "Heatmap",
+				    		width = "100%"
+		    			)
+    				)
 		    	)
 			)
 		}
@@ -378,7 +325,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "meta_sample_x",
-				label = NULL,
+				label = "X metadata",
 				choices = c(colnames(samples_data)),
 				width = "180px"
 			)
@@ -389,7 +336,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "meta_sample_col",
-				label = NULL,
+				label = "Color by :",
 				choices = subset(c(colnames(samples_data)), !(c(colnames(samples_data)) %in% input$meta_sample_x)),
 				width = "180px"
 			)
@@ -401,7 +348,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "meta_gene_x",
-				label = NULL,
+				label = "X metadata :",
 				choices = genes_data_columns,
 				width = "180px"
 			)
@@ -413,7 +360,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "meta_gene_col",
-				label = NULL,
+				label = "Color by :",
 				choices = subset(genes_data_columns, !(genes_data_columns %in% input$meta_gene_x)),
 				width = "180px"
 			)
@@ -426,7 +373,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "dotplot_sample_x",
-				label = NULL,
+				label = "X sample :",
 				choices = colnames(final_table[,-(1:ncol(genes_data))]),
 				width = "180px"
 			)
@@ -438,7 +385,7 @@ server <- function(input, output, session){
 		tagList(
 			selectInput(
 				inputId = "dotplot_sample_y",
-				label = NULL,
+				label = "Y sample :",
 				choices = subset(colnames(final_table[,-(1:ncol(genes_data))]), !(colnames(final_table[,-(1:ncol(genes_data))]) %in% input$dotplot_sample_x )),
 				width = "180px"
 			)
