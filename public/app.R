@@ -3,13 +3,14 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'markdown', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
 
 # Load packages
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
 library(shinyBS)
+library(markdown)
 library(data.table)
 library(DT)
 library(gplots)
@@ -27,33 +28,32 @@ source("lib/read_tables.R")
 source("lib/build_graphs.R")
 
 # User interface
-ui <- dashboardPage(
-	dashboardHeader(title = HTML(paste0("Shiny Transcriptomic Aggregator - ", project)), titleWidth = 450),
-	dashboardSidebar(
-		sidebarMenu(id = "tabs",
-			menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
-			menuItem("Input data", tabName = "input_tab", icon = icon("file-import")),
-			menuItem("Table", tabName = "table_tab", icon = icon("table")),
-			menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
-			menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
-			menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
-			menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar"))
-		)
-	),
-	dashboardBody(
-		useShinyjs(),
-		# Header
-		tags$head(
-			tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
+ui <- tagList(
+	dashboardPage(
+		dashboardHeader(title = HTML(paste0("Shiny Transcriptomic Aggregator - ", project)), titleWidth = 450),
+		dashboardSidebar(
+			sidebarMenu(id = "tabs",
+				menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
+				menuItem("Input data", tabName = "input_tab", icon = icon("file-import")),
+				menuItem("Table", tabName = "table_tab", icon = icon("table")),
+				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
+				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
+				menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
+				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar"))
+			)
 		),
-		tabItems(
-			source("guide_ui.R", local = TRUE)$value,
-			source("input_ui.R", local = TRUE)$value,
-			source("table_ui.R", local = TRUE)$value,
-			source("barplot_ui.R", local = TRUE)$value,
-			source("boxplot_ui.R", local = TRUE)$value,
-			source("dotplot_ui.R", local = TRUE)$value,
-			source("heatmap_ui.R", local = TRUE)$value
+		dashboardBody(
+			useShinyjs(),
+			includeCSS("www/custom.css"),
+			tabItems(
+				source("guide_ui.R", local = TRUE)$value,
+				source("input_ui.R", local = TRUE)$value,
+				source("table_ui.R", local = TRUE)$value,
+				source("barplot_ui.R", local = TRUE)$value,
+				source("boxplot_ui.R", local = TRUE)$value,
+				source("dotplot_ui.R", local = TRUE)$value,
+				source("heatmap_ui.R", local = TRUE)$value
+			)
 		)
 	),
 	# Footer

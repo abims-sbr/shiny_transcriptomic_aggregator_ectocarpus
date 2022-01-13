@@ -1,35 +1,41 @@
 output$heatmap_tab <- renderUI({
 	if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 		tagList(
-			fluidRow(
-				# Color palette
-				column(12,
-					selectInput(
-						inputId = "color",
-						label = "Color palette :",
-						choices = c(RedBlue="RdYlBu","YellowBlue","Blues"),
-						selected = "RedBlue"
+			box(
+				title = "Heatmap",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				fluidRow(
+					# Color palette
+					column(12,
+						selectInput(
+							inputId = "color",
+							label = "Color palette :",
+							choices = c(RedBlue="RdYlBu","YellowBlue","Blues"),
+							selected = "RedBlue"
+						)
 					)
-				)
-			),
-			fluidRow(
-				column(8,
-	    			selectInput(
-	        			inputId = "heatmap_ext",
-	        			label = "Export format :",
-	                	choices = c("PNG", "PDF", "SVG", "EPS"),
-	                	width = "200px"
-	    			)
 				),
-				column(4,
-					br(),
-	    			downloadButton(
-			    		outputId = "heatmap",
-			    		label = "Heatmap",
-			    		width = "100%"
-	    			)
-				)
-	    	)
+				fluidRow(
+					column(8,
+		    			selectInput(
+		        			inputId = "heatmap_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+					),
+					column(4,
+						br(),
+		    			downloadButton(
+				    		outputId = "heatmap",
+				    		label = "Heatmap",
+				    		width = "100%"
+		    			)
+					)
+		    	)
+		    )
 		)
 	}
 })

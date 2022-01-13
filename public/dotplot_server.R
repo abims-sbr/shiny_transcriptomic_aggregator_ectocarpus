@@ -2,31 +2,37 @@
 output$dotplot_tab <- renderUI({
 	if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 		tagList(
-			fluidRow(
-				column(6,
-	    			uiOutput("dotplot_sample_one")
+			box(
+				title = "Dotplot",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				fluidRow(
+					column(6,
+		    			uiOutput("dotplot_sample_one")
+		    		),
+		    		column(6,
+		    			uiOutput("dotplot_sample_two")
+		    		)
 	    		),
-	    		column(6,
-	    			uiOutput("dotplot_sample_two")
-	    		)
-    		),
-    		fluidRow(
-    			column(8,
-	    			selectInput(
-	        			inputId = "dotplot_ext",
-	        			label = "Export format :",
-	                	choices = c("PNG", "PDF", "SVG", "EPS"),
-	                	width = "200px"
-	    			)
-    			),
-    			column(4,
-    				br(),
-			    	downloadButton(
-			    		outputId = "dotplot",
-			    		label = "Dotplot",
-			    		width = "100%"
-	    			)
-		    	)
+	    		fluidRow(
+	    			column(8,
+		    			selectInput(
+		        			inputId = "dotplot_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+	    			),
+	    			column(4,
+	    				br(),
+				    	downloadButton(
+				    		outputId = "dotplot",
+				    		label = "Dotplot",
+				    		width = "100%"
+		    			)
+			    	)
+			    )
 		    )
 		)
 	}

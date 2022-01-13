@@ -3,7 +3,7 @@ output$samples_filters <- renderUI({
 	samples_data <- samples_data_table()
 	tagList(
 		bsCollapsePanel(
-			title = h3("Samples Metadata Filters"),
+			title = "Samples Metadata Filters",
 			fluidRow(
 		      	lapply(1:ncol(samples_data), function(i) {
 		      		if (!(tolower(colnames(samples_data)[i]) %in% sample_col_blacklist)) {
@@ -26,7 +26,7 @@ output$samples_filters <- renderUI({
 				column(3,
 					actionButton(
 						inputId = "reset_samples_values",
-						label = "Reset" 
+						label = "Reset filters" 
 					)
 				)
 			)				
@@ -54,7 +54,7 @@ output$genes_filters <- renderUI({
 	genes_data_table <- genes_data_table()
 	tagList(
 		bsCollapsePanel(
-			title = h3("Genes Metadata Filters"),
+			title = "Genes Metadata Filters",
 			fluidRow(
 				lapply(1:ncol(genes_data_table), function(i) {
 					if (tolower(colnames(genes_data_table)[i]) != "description") {
@@ -75,7 +75,7 @@ output$genes_filters <- renderUI({
 				column(3,
 					actionButton(
 						inputId = "reset_genes_values",
-						label = "Reset" 
+						label = "Reset filters" 
 					)
 				)
 			)
@@ -109,6 +109,8 @@ output$samples_id_filter <- renderUI({
 			inputId = "unselect_all",
 			label = "Unselect all"
 		),
+		hr(),
+		br(),
     	checkboxGroupInput(
     		inputId = "sample_id",
     		label = NULL,
@@ -230,8 +232,8 @@ output$table <- renderDataTable({
     	dom = 'Blfrtip',
     	order = list(0, 'asc'),
     	fixedHeader = TRUE,
-    	pageLength = 25,
-			lengthMenu = list(c(10, 25, 50, 100, 200, -1),list("10","25","50","100","200","all")),
+    	pageLength = 15,
+			lengthMenu = list(c(10, 15, 25, 50, 100, 200, -1),list("10", "15", "25","50","100","200","all")),
         scrollX = TRUE,
         buttons = list(
         	'copy', 'csv', 'excel', 'print',

@@ -1,0 +1,34 @@
+---
+title: "Shiny Transcriptomic Aggregator user guide"
+author: "Romain Dallet"
+output: html_document
+---
+
+# Introduction
+-----
+
+Shiny Transcriptomic Aggregator is a web-based application for exploring RNA-seq data.
+
+*N.B. : Build the table one time by accessing it from table tab before access to charts tab*
+
+# How to use it
+-----
+
+## Input data
+
+By default, a set of ectocarpus data is already load. But you can import new files using the file browsers in the "input data" tab.
+
+TPM, genes and samples data file are required in this case and should be presented as follows :
+
+## Table
+
+Filters
+Sample list
+Table
+
+## Charts
+
+### Barplot
+### Boxplot
+### Dotplot
+### Heatmap

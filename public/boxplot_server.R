@@ -2,59 +2,69 @@
 output$boxplot_tab <- renderUI({
 	if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
 		tagList(
-			selectInput(
-					inputId = "metadata",
-					label = "Metadata",
-					choices = c("Samples", "Genes")
-			),
-    		fluidRow(
-    			conditionalPanel(
-					condition = "input.metadata == 'Samples'",
-    				column(6,
-		    			uiOutput("metadata_sample_x")
+			box(
+				title = "Boxplot",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				fluidRow(
+					column(12,
+						selectInput(
+								inputId = "metadata",
+								label = "Metadata",
+								choices = c("Samples", "Genes")
+						)
+					)
+				),
+	    		fluidRow(
+	    			conditionalPanel(
+						condition = "input.metadata == 'Samples'",
+	    				column(6,
+			    			uiOutput("metadata_sample_x")
+			    		),
+		    			# Y Metadata : log2(TPMs)
+		    			column(6,
+			    			uiOutput("metadata_sample_col")
+			    		)
 		    		),
-	    			# Y Metadata : log2(TPMs)
-	    			column(6,
-		    			uiOutput("metadata_sample_col")
+		    		conditionalPanel(
+						condition = "input.metadata == 'Genes'",
+	    				column(6,
+			    			uiOutput("metadata_gene_x")
+			    		),
+		    			# Y Metadata : log2(TPMs)
+		    			column(6,
+			    			uiOutput("metadata_gene_col")
+			    		)
 		    		)
-	    		),
-	    		conditionalPanel(
-					condition = "input.metadata == 'Genes'",
-    				column(6,
-		    			uiOutput("metadata_gene_x")
+		    	),
+		    	fluidRow(
+		    		column(12,
+			    		checkboxInput(
+			    			inputId = "use_replicats",
+			    			label = "Mean by replicats",
+							value = FALSE
+			    		)
+			    	)
+		    	),
+		    	hr(),
+		    	fluidRow(
+		    		column(8,
+				    	selectInput(
+		        			inputId = "boxplot_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
 		    		),
-	    			# Y Metadata : log2(TPMs)
-	    			column(6,
-		    			uiOutput("metadata_gene_col")
+		    		column(4,
+		    			br(),
+				    	downloadButton(
+				    		outputId = "boxplot",
+				    		label = "Boxplot",
+				    		width = "100%"
+		    			)
 		    		)
-	    		)
-	    	),
-	    	fluidRow(
-	    		column(12,
-		    		checkboxInput(
-		    			inputId = "use_replicats",
-		    			label = "Mean by replicats",
-						value = FALSE
-		    		)
-		    	)
-	    	),
-	    	hr(),
-	    	fluidRow(
-	    		column(8,
-			    	selectInput(
-	        			inputId = "boxplot_ext",
-	        			label = "Export format :",
-	                	choices = c("PNG", "PDF", "SVG", "EPS"),
-	                	width = "200px"
-	    			)
-	    		),
-	    		column(4,
-	    			br(),
-			    	downloadButton(
-			    		outputId = "boxplot",
-			    		label = "Boxplot",
-			    		width = "100%"
-	    			)
 	    		)
 		    )
 		)
