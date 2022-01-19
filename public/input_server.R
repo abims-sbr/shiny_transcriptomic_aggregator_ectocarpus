@@ -1,4 +1,4 @@
-# Import files
+# Get data from files
 # TPMS
 observeEvent(input$tpms_file, {
 	tpms_data_table(getDataFrameFromFile(input$tpms_file$datapath))
@@ -12,13 +12,16 @@ observeEvent(input$genes_data_file, {
 observeEvent(input$samples_data_file, {
 	samples_data_file <- getDataFrameFromFile(input$samples_data_file$datapath)
 	if("private" %in% tolower(colnames(samples_data_file))){
+		# If public instance, took of private sample data
 		if(instance_tag == "public"){
 			samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
 		}
+		# Remove private column from the table
 		samples_data_file["private"] <- NULL
 	}
 	samples_data_table(samples_data_file)   	
 })
+
 # Gene List (Optional)
 observeEvent(input$genes_list_file, {
 	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))

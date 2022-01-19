@@ -12,5 +12,5 @@ sample_col_blacklist <- c("replicats")
 
 # Project Files
 tpms_input <- "test-data/tpms_test.csv"
-genes_data_input <- "test-data/genes_data_test_duplicated.csv"
+genes_data_input <- "test-data/genes_data_test.csv"
 samples_data_input <- "test-data/samples_data_test.csv"

@@ -64,26 +64,35 @@ ui <- tagList(
 # Server function
 server <- function(input, output, session){
 
-	## Variable Initialisation	
-    final_table <- reactiveVal(0)
-    genes_list <- reactiveVal(value=NULL)
+    # Assign default data
     if(!is.null(tpms_input)){
 	    tpms_data_table <- reactiveVal(value=getDataFrameFromFile(tpms_input))
     }
     if(!is.null(genes_data_input)){
     	genes_data_file <- getDataFrameFromFile(genes_data_input)
+    	# TODO : transform merge_duplicated data into an id check and render error
     	genes_data_table <- reactiveVal(value=merge_duplicated_data(genes_data_file))
     }
     if(!is.null(samples_data_input)){
     	samples_data_file <- getDataFrameFromFile(samples_data_input)
 		if("private" %in% tolower(colnames(samples_data_file))){
+			# If public instance, took of private sample data
 			if(instance_tag == "public"){
 				samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
 			}
+			# Remove private column from the table
 			samples_data_file["private"] <- NULL
 		}
     	samples_data_table <- reactiveVal(value=samples_data_file)
 	}
+
+	# Variable Initialisation
+	final_table <- reactiveVal()
+	observe ({
+		initial_table <- merge(genes_data_table(), tpms_data_table(), by=colnames(genes_data_table()["gene_id"]))
+		final_table(initial_table)
+	})
+	genes_list <- reactiveVal(value=NULL)
 
 	source("input_server.R", local = TRUE)
 	source("table_server.R", local = TRUE)

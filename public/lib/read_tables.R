@@ -1,4 +1,4 @@
-#@author G. Le Corguille
+# @author G. Le Corguille
 # It allow different of field separators
 getDataFrameFromFile <- function(filename, header=T) {
     myDataFrame <- read.csv(filename, header=header, sep=";", stringsAsFactors=F, check.names=F)
