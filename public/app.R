@@ -3,13 +3,14 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'markdown', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
 
 # Load packages
 library(shiny)
 library(shinydashboard)
 library(shinyjs)
 library(shinyBS)
+library(shinyWidgets)
 library(markdown)
 library(data.table)
 library(DT)
@@ -88,11 +89,17 @@ server <- function(input, output, session){
 
 	# Variable Initialisation
 	final_table <- reactiveVal()
+	genes_list <- reactiveVal(value=NULL)
+
 	observe ({
+		# Update table by gene list file
 		initial_table <- merge(genes_data_table(), tpms_data_table(), by=colnames(genes_data_table()["gene_id"]))
+		# TODO : Better implemant gene_list filter with other filters
+		if (length(genes_list()) > 0) {
+			initial_table <- subset(initial_table, initial_table[,1] %in% genes_list()[[1]])
+		}		
 		final_table(initial_table)
 	})
-	genes_list <- reactiveVal(value=NULL)
 
 	source("input_server.R", local = TRUE)
 	source("table_server.R", local = TRUE)

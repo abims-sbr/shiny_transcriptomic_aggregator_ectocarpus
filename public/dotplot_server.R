@@ -1,67 +1,65 @@
-# Dotplot UI
-output$dotplot_tab <- renderUI({
-	if(!is.null(tpms_data_table()) && !is.null(genes_data_table()) && !is.null(samples_data_table())){
-		tagList(
-			box(
-				title = "Dotplot",
-				status = "primary",
-				solidHeader = TRUE,
-				width = 12,
-				fluidRow(
-					column(6,
-		    			uiOutput("dotplot_sample_one")
-		    		),
-		    		column(6,
-		    			uiOutput("dotplot_sample_two")
-		    		)
-	    		),
-	    		fluidRow(
-	    			column(8,
-		    			selectInput(
-		        			inputId = "dotplot_ext",
-		        			label = "Export format :",
-		                	choices = c("PNG", "PDF", "SVG", "EPS"),
-		                	width = "200px"
-		    			)
-	    			),
-	    			column(4,
-	    				br(),
-				    	downloadButton(
-				    		outputId = "dotplot",
-				    		label = "Dotplot",
-				    		width = "100%"
-		    			)
-			    	)
-			    )
-		    )
-		)
-	}
-})
-
 # Dotplot selected samples
-output$dotplot_sample_one <- renderUI({
-	genes_data <- genes_data_table()
-	final_table <- final_table()
+output$dotplot_x_sample <- renderUI({
 	tagList(
 		selectInput(
 			inputId = "dotplot_sample_x",
 			label = "X sample :",
-			choices = colnames(final_table[,-(1:ncol(genes_data))]),
-			width = "180px"
+			choices = colnames(final_table()[,-(1:ncol(genes_data_table()))]),
+			#width = "180px"
 		)
 	)
 })
-output$dotplot_sample_two <- renderUI({
-	genes_data <- genes_data_table()
-	final_table <- final_table()
+output$dotplot_y_sample <- renderUI({
 	tagList(
 		selectInput(
 			inputId = "dotplot_sample_y",
 			label = "Y sample :",
-			choices = subset(colnames(final_table[,-(1:ncol(genes_data))]), !(colnames(final_table[,-(1:ncol(genes_data))]) %in% input$dotplot_sample_x )),
-			width = "180px"
+			choices = subset(colnames(final_table()[,-(1:ncol(genes_data_table()))]), !(colnames(final_table()[,-(1:ncol(genes_data_table()))]) %in% input$dotplot_sample_x )),
+			#width = "180px"
 		)
 	)
+})
+
+# Create graph and download button after clicking on visualize button
+observeEvent(input$build_dotplot, {
+	output$dotplot_visualize <- renderUI({
+		box(
+			title = "Dotplot",
+			status = "primary",
+			solidHeader = TRUE,
+			width = 12,
+			fluidRow(
+				plotOutput(
+					outputId = "dotplot"
+				)
+			),
+			fluidRow(
+				column(8),
+				column(2,
+					selectInput(
+		    			inputId = "dotplot_ext",
+		    			label = "Download format :",
+		            	choices = c("PNG", "PDF", "SVG", "EPS"),
+		            	width = "200px"
+					)
+				),
+				column(2,
+					br(),
+			    	downloadButton(
+			    		outputId = "dotplot_file",
+			    		label = "Download",
+			    		class = "btn btn-primary",
+			    		width = "100%"
+					)
+		    	)
+		    )
+		)
+	})
+})
+
+# Plot output
+output$dotplot <- renderPlot({
+	print(dotplot())
 })
 
 # Download dotplot
@@ -70,7 +68,43 @@ output$dotplot <- downloadHandler (
 		paste0("dotplot.", tolower(input$dotplot_ext))
 	},
 	content = function(file){
-		final_table <- final_table()
-		buildDotplot(final_table, file, ext = input$dotplot_ext, x=input$dotplot_sample_x, y=input$dotplot_sample_y)
+		if (input$dotplot_ext == "PNG"){
+			png(file, width = 1500, height = 1000)
+		} else if (input$dotplot_ext == "PDF") {
+			pdf(file, width = 1500, height = 1000)
+		} else if (input$dotplot_ext == "SVG") {
+			svg(file, width = 15, height = 10)
+		} else if (input$dotplot_ext == "EPS") {
+			setEPS()
+			postscript(file)
+		}
+		print(dotplot())
+		dev.off()
 	}
 )
+
+dotplot <- reactiveVal()
+# TODO : aes x and y not work
+observeEvent(input$build_dotplot, {
+	plot <- print(
+		ggplot(
+			data = final_table(),
+			aes(
+				x = log2(get(input$dotplot_sample_x)),
+				y = log2(get(input$dotplot_sample_y)),
+				fill = final_table()[,1]
+			)
+		)
+		+ geom_dotplot(
+			binaxis = 'y',
+			stackdir = 'center',
+			dotsize = 0.5
+		)
+		+ scale_color_brewer(palette = "Set1")
+		#+ ggtitle("Dotplot")
+		+ xlab(paste0(input$dotplot_sample_x, " (log2(TPM))"))
+		+ ylab(paste0(input$dotplot_sample_y, " (log2(TPM))"))
+		+ guides(fill=guide_legend(title="Genes"))
+	)
+	dotplot(plot)
+})

@@ -26,7 +26,6 @@ hr {
 br {
 	margin-bottom: 5px;
 }
-
 footer {
 	bottom:0;
 	width:100%;
@@ -47,4 +46,9 @@ footer {
         position: fixed;
         top: calc(50%);
         left: calc(50%);
+}
+
+.btn-primary {
+	color: white;
+	font-weight: bold;
 }

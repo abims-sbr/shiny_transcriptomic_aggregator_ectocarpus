@@ -1,4 +1,4 @@
-# Create a vector with all the sample data table columns except sample_id and blacklist ones in conf.R
+# Create a vector with all the sample data table columns except blacklist ones in conf.R
 samples_inputs <- reactive ({
 	samples_data <- samples_data_table()
 	samples_inputs <- unlist(lapply(1:ncol(samples_data), function(i){
@@ -14,7 +14,7 @@ output$samples_filters <- renderUI({
 		bsCollapsePanel(
 			title = "Samples Metadata Filters",
 			fluidRow(
-				# Create one filter by samples inputs
+				# Create one filter by value in samples inputs
 		      	lapply(1:length(samples_inputs()), function(i) {
 		      		if (samples_inputs()[i] != "sample_id") {
 			      		column(4,
@@ -30,12 +30,8 @@ output$samples_filters <- renderUI({
 		      	})
 			),
 			fluidRow(
-				column(8),
-				column(4,
-					actionButton(
-						inputId = "apply_samples_filters",
-						label = "Apply filters"
-					),
+				column(9),
+				column(3,
 					actionButton(
 						inputId = "reset_samples_values",
 						label = "Reset filters" 
@@ -89,12 +85,8 @@ output$genes_filters <- renderUI({
 				})
 			),
 			fluidRow(
-				column(8),
-				column(4,
-					actionButton(
-						inputId = "apply_genes_filters",
-						label = "Apply filters"
-					),
+				column(9),
+				column(3,
 					actionButton(
 						inputId = "reset_genes_values",
 						label = "Reset filters" 
@@ -117,29 +109,40 @@ observeEvent(input$reset_genes_values, {
 })
 
 # Build samples list
+# TODO : Change checkboxGroupInput to pickerInput
 output$samples_id_filter <- renderUI({
-	wellPanel(
-		style = paste0("overflow-y:auto; max-height: 650px"),
-		HTML("<h4><b>Sample id :</h4></b>"),
-		hr(),
-		actionButton(
-			inputId = "select_all",
-			label = "Select all"
+	tagList(
+		bsCollapse(
+			open = "Sample id",
+			bsCollapsePanel(
+				title = "Sample id",
+				fluidRow(
+					actionButton(
+						inputId = "select_all",
+						label = "Select all"
+					),
+					actionButton(
+						inputId = "unselect_all",
+						label = "Unselect all"
+					)
+				),
+				hr(),
+				br(),
+		    	checkboxGroupInput(
+		    		inputId = "sample_id",
+		    		label = NULL,
+		           	choices = as.character(samples_data_table()[,1][order(samples_data_table()[,1])]),
+		           	selected = as.character(samples_data_table()[,1][order(samples_data_table()[,1])]),
+		        	width = "200px"
+				)
+		    )
 		),
 		actionButton(
-			inputId = "unselect_all",
-			label = "Unselect all"
-		),
-		hr(),
-		br(),
-    	checkboxGroupInput(
-    		inputId = "sample_id",
-    		label = NULL,
-           	choices = as.character(samples_data_table()[,1][order(samples_data_table()[,1])]),
-           	selected = as.character(samples_data_table()[,1][order(samples_data_table()[,1])]),
-        	width = "200px"
+			inputId = "apply_filters",
+			label = "Apply filters",
+			class = "btn btn-primary"
 		)
-	)
+	)	
 })
 # Update samples list (Select all)
 observeEvent(input$select_all, {
@@ -160,6 +163,7 @@ observeEvent(input$unselect_all, {
 	)
 })
 
+# Build the table
 output$table <- renderDataTable({
 	final_table()
 },
@@ -185,10 +189,10 @@ output$table <- renderDataTable({
     )
 )
 
-####### Vérifier dessous
-observeEvent(input$apply_samples_filters, {
+# Apply filters on data
+observeEvent(input$apply_filters, {
 
-	genes_data_table <- genes_data_table()
+	# TODO : Render error message if one or more files are missing
 
 	# Browse samples filters and apply them
 	samples_data <- lapply(1:length(samples_inputs()), function(i){
@@ -207,31 +211,19 @@ observeEvent(input$apply_samples_filters, {
 	samples_data <- Reduce(merge, Filter(Negate(is.null), samples_data))
 				
     # Filter TPMs data table by samples respecting samples filters
-	filtered_tpms_data <- cbind(tpms_data_table()["gene_id"], tpms_data_table()[colnames(tpms_data_table()) %in% samples_data[,"sample_id"]])
+	tpms_data <- cbind(tpms_data_table()["gene_id"], tpms_data_table()[colnames(tpms_data_table()) %in% samples_data[,"sample_id"]])
 	# Merge filtered TPMS and genes metadata files
-	filtered_table <- merge(genes_data_table(), filtered_tpms_data, by=colnames(genes_data_table()["gene_id"]))
-	final_table(filtered_table)
-	#filtered_table
-})
+	new_table <- merge(genes_data_table(), tpms_data, by=colnames(genes_data_table()["gene_id"]))
 
-observeEvent(input$apply_genes_filters, {
-
-    initial_table <- merge(genes_data_table(), tpms_data_table(), by=colnames(genes_data_table()["gene_id"]))
-    # Apply genes filters
+	# Browse genes filters and apply them
     filtered_table <- lapply(1:length(genes_inputs()), function(i){
 		if (input[[genes_inputs()[i]]] != "All") {
-			filtered_table <- subset(initial_table, initial_table[,i] == input[[genes_inputs()[i]]])
+			filtered_table <- subset(new_table, new_table[,i] == input[[genes_inputs()[i]]])
 		} else {
-			filtered_table <- initial_table
+			filtered_table <- new_table
 		}
 	})
 	filtered_table <- Reduce(merge, Filter(Negate(is.null), filtered_table))
-	final_table(filtered_table)
-	#filtered_table
-})
 
-# Update table by gene list file
-#genes_list <- genes_list()
-#if (length(genes_list) > 0) {
-#	final_table <- subset(final_table, final_table[,1] %in% genes_list[[1]])	
-#}
+	final_table(filtered_table)
+})

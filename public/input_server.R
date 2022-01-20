@@ -29,6 +29,8 @@ observeEvent(input$genes_list_file, {
 
 # Reset Files
 observeEvent(input$reset_files, {
+	tpms_data_table(NULL)
+	genes_data_table(NULL)
+	samples_data_table(NULL)
 	genes_list(NULL)
-	reset('files_panel')
 })
