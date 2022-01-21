@@ -3,7 +3,7 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'gplots', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'gplots', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
 
 # Load packages
 library(shiny)
@@ -14,7 +14,8 @@ library(shinyWidgets)
 library(markdown)
 library(data.table)
 library(DT)
-library(gplots)
+#library(gplots)
+library(pheatmap)
 library(Hmisc)
 library(RColorBrewer)
 library(reshape)
@@ -52,7 +53,7 @@ ui <- tagList(
 				source("table_ui.R", local = TRUE)$value,
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
-				source("dotplot_ui.R", local = TRUE)$value,
+				#source("dotplot_ui.R", local = TRUE)$value,
 				source("heatmap_ui.R", local = TRUE)$value
 			)
 		)
@@ -70,9 +71,7 @@ server <- function(input, output, session){
 	    tpms_data_table <- reactiveVal(value=getDataFrameFromFile(tpms_input))
     }
     if(!is.null(genes_data_input)){
-    	genes_data_file <- getDataFrameFromFile(genes_data_input)
-    	# TODO : transform merge_duplicated data into an id check and render error
-    	genes_data_table <- reactiveVal(value=merge_duplicated_data(genes_data_file))
+    	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
     }
     if(!is.null(samples_data_input)){
     	samples_data_file <- getDataFrameFromFile(samples_data_input)
@@ -104,7 +103,8 @@ server <- function(input, output, session){
 	source("input_server.R", local = TRUE)
 	source("table_server.R", local = TRUE)
 	source("boxplot_server.R", local = TRUE)
-	source("dotplot_server.R", local = TRUE)
+	# TODO : Dotplot not working
+	#source("dotplot_server.R", local = TRUE)
 	source("heatmap_server.R", local = TRUE)
 }
 shinyApp(ui, server)

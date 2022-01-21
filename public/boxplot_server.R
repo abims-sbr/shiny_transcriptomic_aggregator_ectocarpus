@@ -158,5 +158,6 @@ observeEvent(input$build_boxplot, {
 		+ ylab("log2(TPM)")
 		+ guides(fill=guide_legend(title=paste0(col)))
 	)
+	# Fill the boxplot reactive variable with the plot
 	boxplot(plot)
 })

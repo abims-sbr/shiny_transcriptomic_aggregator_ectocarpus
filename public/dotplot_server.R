@@ -97,8 +97,7 @@ observeEvent(input$build_dotplot, {
 		)
 		+ geom_dotplot(
 			binaxis = 'y',
-			stackdir = 'center',
-			dotsize = 0.5
+			stackdir = 'center'#,dotsize = 0.5
 		)
 		+ scale_color_brewer(palette = "Set1")
 		#+ ggtitle("Dotplot")
