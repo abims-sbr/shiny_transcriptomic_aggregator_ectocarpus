@@ -3,7 +3,7 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'gplots', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'ggplot2', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
 
 # Load packages
 library(shiny)
@@ -14,7 +14,7 @@ library(shinyWidgets)
 library(markdown)
 library(data.table)
 library(DT)
-#library(gplots)
+library(ggplot2)
 library(pheatmap)
 library(Hmisc)
 library(RColorBrewer)
@@ -25,9 +25,7 @@ library(dplyr)
 # Load configurations
 source("conf.R", local = TRUE)
 # Load functions
-source("lib/merge_duplicated_data.R")
 source("lib/read_tables.R")
-source("lib/build_graphs.R")
 
 # User interface
 ui <- tagList(
@@ -36,11 +34,11 @@ ui <- tagList(
 		dashboardSidebar(
 			sidebarMenu(id = "tabs",
 				menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
-				menuItem("Input data", tabName = "input_tab", icon = icon("file-import")),
+				menuItem("Import data", tabName = "import_tab", icon = icon("file-import")),
 				menuItem("Table", tabName = "table_tab", icon = icon("table")),
 				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
 				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
-				menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
+				#menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
 				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar"))
 			)
 		),
@@ -49,11 +47,11 @@ ui <- tagList(
 			includeCSS("www/custom.css"),
 			tabItems(
 				source("guide_ui.R", local = TRUE)$value,
-				source("input_ui.R", local = TRUE)$value,
+				source("import_ui.R", local = TRUE)$value,
 				source("table_ui.R", local = TRUE)$value,
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
-				#source("dotplot_ui.R", local = TRUE)$value,
+				source("dotplot_ui.R", local = TRUE)$value,
 				source("heatmap_ui.R", local = TRUE)$value
 			)
 		)
@@ -100,11 +98,11 @@ server <- function(input, output, session){
 		final_table(initial_table)
 	})
 
-	source("input_server.R", local = TRUE)
+	source("import_server.R", local = TRUE)
 	source("table_server.R", local = TRUE)
+	source("barplot_server.R", local = TRUE)
 	source("boxplot_server.R", local = TRUE)
-	# TODO : Dotplot not working
-	#source("dotplot_server.R", local = TRUE)
+	source("dotplot_server.R", local = TRUE)
 	source("heatmap_server.R", local = TRUE)
 }
 shinyApp(ui, server)

@@ -104,13 +104,28 @@ boxplot <- reactiveVal()
 # Build the plot clicking on the visualize button
 observeEvent(input$build_boxplot, {
 	# TODO : Check the code, mainly use_replicats
-	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
+	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs()[-1])]
+	tboxplot_data <- data.frame(t(boxplot_data))
+	# see melt and dcast functions # https://stackoverflow.com/questions/28653867/best-way-to-transpose-data-table
+	#names(tboxplot_data)[names(tboxplot_data) == "gene_id"] <- "sample_id"
+	# Ajouter sample_name column
+	# aggregate(table[,3:ncol(table)], list(table$sample_id), mean)
 
 	if (input$use_replicats == TRUE) {
+		# TODO : Switch to colMeans because of transpose
 		# Make mean table from replicats
 		rows_mean <- lapply(1:ncol(boxplot_data), function(i){
-			rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"replicats"])])
+			rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"sample_name"])])
 		})
+		# Use sample_name as row_names
+		#if ("sample_name" %in% samples_inputs()) {
+
+		# TODO : Without sample_name column ?
+		# else {
+		#	rows_mean <- lapply(1:ncol(boxplot_data), function(i){
+		#		rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"replicats"])])
+		#	})
+		#}
 		names(rows_mean) <- samples_data_table()[,"sample_id"]
 		boxplot_data <- as.data.frame(list.cbind(rows_mean))		
 	}

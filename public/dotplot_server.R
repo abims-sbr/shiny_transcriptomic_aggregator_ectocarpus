@@ -4,8 +4,7 @@ output$dotplot_x_sample <- renderUI({
 		selectInput(
 			inputId = "dotplot_sample_x",
 			label = "X sample :",
-			choices = colnames(final_table()[,-(1:ncol(genes_data_table()))]),
-			#width = "180px"
+			choices = colnames(final_table()[,-(1:ncol(genes_data_table()))])
 		)
 	)
 })
@@ -14,8 +13,7 @@ output$dotplot_y_sample <- renderUI({
 		selectInput(
 			inputId = "dotplot_sample_y",
 			label = "Y sample :",
-			choices = subset(colnames(final_table()[,-(1:ncol(genes_data_table()))]), !(colnames(final_table()[,-(1:ncol(genes_data_table()))]) %in% input$dotplot_sample_x )),
-			#width = "180px"
+			choices = subset(colnames(final_table()[,-(1:ncol(genes_data_table()))]), !(colnames(final_table()[,-(1:ncol(genes_data_table()))]) %in% input$dotplot_sample_x ))
 		)
 	)
 })
