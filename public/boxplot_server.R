@@ -103,54 +103,55 @@ output$boxplot_file <- downloadHandler (
 boxplot <- reactiveVal()
 # Build the plot clicking on the visualize button
 observeEvent(input$build_boxplot, {
-	# TODO : Check the code, mainly use_replicats
-	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs()[-1])]
-	tboxplot_data <- data.frame(t(boxplot_data))
-	# see melt and dcast functions # https://stackoverflow.com/questions/28653867/best-way-to-transpose-data-table
-	#names(tboxplot_data)[names(tboxplot_data) == "gene_id"] <- "sample_id"
-	# Ajouter sample_name column
-	# aggregate(table[,3:ncol(table)], list(table$sample_id), mean)
-
+	
+	# Get TPM from final_table
+	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
+	
 	if (input$use_replicats == TRUE) {
-		# TODO : Switch to colMeans because of transpose
-		# Make mean table from replicats
-		rows_mean <- lapply(1:ncol(boxplot_data), function(i){
-			rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"sample_name"])])
-		})
-		# Use sample_name as row_names
-		#if ("sample_name" %in% samples_inputs()) {
+		# Transpose boxplot_data in order to aggregate by sample_name
+		tboxplot_data <- t(boxplot_data)
+		# Get filtered samples_data_table
+		samples_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% rownames(tboxplot_data))
+		# Rename columns by gene_id and rows by sample_name
+		colnames(tboxplot_data) <- final_table()[,"gene_id"]
+		rownames(tboxplot_data) <- samples_data[,"sample_name"]
+		# Aggregate by mean for same sample_name
+		mean_by_samplename <- aggregate(tboxplot_data, list(rownames(tboxplot_data)), mean)
+		colnames(mean_by_samplename)[1] <- "sample_name"
 
 		# TODO : Without sample_name column ?
-		# else {
-		#	rows_mean <- lapply(1:ncol(boxplot_data), function(i){
-		#		rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"replicats"])])
-		#	})
-		#}
-		names(rows_mean) <- samples_data_table()[,"sample_id"]
-		boxplot_data <- as.data.frame(list.cbind(rows_mean))		
+		#
+		#rows_mean <- lapply(1:ncol(boxplot_data), function(i){
+		#	rows_mean <- rowMeans(boxplot_data[,c(samples_data_table()[i,"sample_id"], samples_data_table()[i,"replicats"])])
+		#})
+
+		#names(rows_mean) <- samples_data_table()[,"sample_id"]
+		#boxplot_data <- as.data.frame(list.cbind(rows_mean))		
 	}
 
 	if (input$metadata == "Genes") {
-		# Table for genes metadata
-		genes_for_boxplot <- cbind(final_table()[input$meta_gene_x],final_table()[input$meta_gene_col], boxplot_data)
-		melted_data<-melt(genes_for_boxplot, id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
+
 		x <- input$meta_gene_x
 		col <- input$meta_gene_col
-	} else if (input$metadata == "Samples") {
-		# Transpose table for samples metadata
-		transpo_tpms <- data.frame(t(boxplot_data))
-		factors <- sapply(transpo_tpms, is.factor)
-		transpo_tpms[factors] <- lapply(transpo_tpms[factors], as.character)
-		colnames(transpo_tpms) <- final_table()[,1]
 
-		samples_id <- rownames(transpo_tpms)
-		samples_data <- samples_data_table()[samples_data_table()[["sample_id"]] %in% samples_id,]
-		
-		transpo_tpms <- data.frame(transpo_tpms, row.names=NULL)
-		samples_for_boxplot <- cbind(samples_data[input$meta_sample_x],samples_data[input$meta_sample_col], transpo_tpms)
-		melted_data <- melt(samples_for_boxplot, id=c(as.character(input$meta_sample_x), as.character(input$meta_sample_col)))
+		# Bind input x and input color columns to TPM boxplot data
+		genes_for_boxplot <- cbind(final_table()[x],final_table()[col], boxplot_data)
+		# Prepare data for ggplot
+		melted_data<-melt(setDT(genes_for_boxplot), id=c(as.character(input$meta_gene_x),as.character(input$meta_gene_col)))
+	
+	} else if (input$metadata == "Samples") {
 		x <- input$meta_sample_x
 		col <- input$meta_sample_col
+		
+		# Transpose table for samples metadata
+		tboxplot_data <- t(boxplot_data)
+		# Get filtered samples_data_table
+		samples_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% rownames(tboxplot_data))
+		# Rename columns by gene_id and rows by sample_name
+		colnames(tboxplot_data) <- final_table()[,"gene_id"]
+	
+		samples_for_boxplot <- cbind(samples_data[x],samples_data[col], tboxplot_data)
+		melted_data <- melt(setDT(samples_for_boxplot), id=c(as.character(x), as.character(col)))
 	}
 	# Build the plot with ggplot function
 	plot <- print(

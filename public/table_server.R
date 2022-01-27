@@ -109,7 +109,6 @@ observeEvent(input$reset_genes_values, {
 })
 
 # Build samples list
-# TODO : Change checkboxGroupInput to pickerInput
 output$samples_id_filter <- renderUI({
 	tagList(
 		bsCollapse(

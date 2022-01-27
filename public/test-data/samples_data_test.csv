@@ -19,13 +19,13 @@ Sample17.4.w.f.i.g,Sample17,4,wt,female,immature,gametophyte,TRUE,
 Sample18.4.w.f.m.s,Sample18,4,wt,female,mature,sporophyte,TRUE,
 Sample19.5.w.m.i.g,Sample19,5,wt,male,immature,gametophyte,TRUE,
 Sample20.5.d.m.i.g,Sample20,5,dis,male,immature,gametophyte,TRUE,
-Sample21.5.w.m.m.p,Sample21,5,wt,male,mature,parthenosporophyte,TRUE,Sample22.6.w.m.m.p
-Sample22.6.w.m.m.p,Sample21,5,wt,male,mature,parthenosporophyte,TRUE,Sample21.5.w.m.m.p
+Sample21.5.w.m.m.p,Sample21,5,wt,male,mature,parthenosporophyte,TRUE,Sample22.5.w.m.m.p
+Sample22.5.w.m.m.p,Sample21,5,wt,male,mature,parthenosporophyte,TRUE,Sample21.5.w.m.m.p
 Sample23.6.w.f.m.p,Sample23,6,wt,female,mature,parthenosporophyte,TRUE,
 Sample24.6.w.f.m.g,Sample24,6,wt,female,mature,gametophyte,TRUE,
 Sample25.7.w.m.i.g,Sample25,7,wt,male,immature,gametophyte,TRUE,
 Sample26.7.d.m.i.g,Sample26,7,dis,male,immature,gametophyte,TRUE,
 Sample27.7.d.m.i.p,Sample27,7,dis,male,immature,parthenosporophyte,TRUE,
 Sample28.7.d.m.i.s,Sample28,7,dis,male,immature,sporophyte,TRUE,
-Sample29.7.w.f.i.g,Sample29,7,wt,female,immature,gametophyte,TRUE,Sample30.8.w.f.m.g
-Sample30.8.w.f.m.g,Sample29,7,wt,female,mature,gametophyte,TRUE,Sample29.7.w.f.i.g
+Sample29.7.w.f.m.g,Sample29,7,wt,female,mature,gametophyte,TRUE,Sample30.7.w.f.m.g
+Sample30.7.w.f.m.g,Sample29,7,wt,female,mature,gametophyte,TRUE,Sample29.7.w.f.m.g

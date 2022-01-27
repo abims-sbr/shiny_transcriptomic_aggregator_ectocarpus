@@ -65,9 +65,6 @@ ui <- tagList(
 server <- function(input, output, session){
 
     # Assign default data
-    if(!is.null(tpms_input)){
-	    tpms_data_table <- reactiveVal(value=getDataFrameFromFile(tpms_input))
-    }
     if(!is.null(genes_data_input)){
     	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
     }
@@ -83,15 +80,22 @@ server <- function(input, output, session){
 		}
     	samples_data_table <- reactiveVal(value=samples_data_file)
 	}
+    if(!is.null(tpms_input)){
+	    tpms_data_table <- reactiveVal(getDataFrameFromFile(tpms_input))
+    }
 
 	# Variable Initialisation
 	final_table <- reactiveVal()
 	genes_list <- reactiveVal(value=NULL)
 
 	observe ({
-		# Update table by gene list file
+		# Remove private samples in tpms file
+		tpms_data <- tpms_data_table()[, samples_data_table()[,"sample_id"]]
+		tpms_data_table(cbind(tpms_data_table()["gene_id"], tpms_data))
+
 		initial_table <- merge(genes_data_table(), tpms_data_table(), by=colnames(genes_data_table()["gene_id"]))
 		# TODO : Better implemant gene_list filter with other filters
+		# Update table by gene list file
 		if (length(genes_list()) > 0) {
 			initial_table <- subset(initial_table, initial_table[,1] %in% genes_list()[[1]])
 		}		
