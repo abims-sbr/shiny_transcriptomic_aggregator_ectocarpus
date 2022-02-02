@@ -38,7 +38,7 @@ tabItem(tabName = "boxplot_tab",
     			),
     			br(),
 		    	materialSwitch(
-	    			inputId = "use_replicats",,
+	    			inputId = "boxplot_replicats",,
 					value = FALSE,
 					status = "success",
 					width = "100px"

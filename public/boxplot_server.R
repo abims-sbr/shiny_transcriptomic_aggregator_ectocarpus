@@ -107,7 +107,7 @@ observeEvent(input$build_boxplot, {
 	# Get TPM from final_table
 	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
 	
-	if (input$use_replicats == TRUE) {
+	if (input$boxplot_replicats == TRUE) {
 		# Transpose boxplot_data in order to aggregate by sample_name
 		tboxplot_data <- t(boxplot_data)
 		# Get filtered samples_data_table

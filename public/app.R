@@ -3,7 +3,7 @@ options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
 # Update installed packages
 #update.packages(ask=FALSE, checkBuilt=TRUE)
 # Install some packages
-install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'ggplot2', 'Hmisc', 'reshape', 'rlist', 'dplyr'))
+install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'ggplot2', 'Hmisc', 'reshape', 'rlist', 'dplyr', 'plyr'))
 
 # Load packages
 library(shiny)
@@ -20,6 +20,7 @@ library(Hmisc)
 library(RColorBrewer)
 library(reshape)
 library(rlist)
+library(plyr)
 library(dplyr)
 
 # Load configurations

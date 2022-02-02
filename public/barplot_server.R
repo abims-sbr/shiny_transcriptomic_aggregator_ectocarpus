@@ -1,3 +1,14 @@
+# Barplot list of conditions
+output$barplot_metadata_ui <- renderUI({
+	tagList(
+		selectInput(
+			inputId = "barplot_metadata",
+			label = "Samples metadata",
+			choices = samples_inputs()[-1]
+		)
+	)
+})
+
 # Create graph and download button after clicking on visualize button
 observeEvent(input$build_barplot, {
 	output$barplot_visualize <- renderUI({
@@ -64,27 +75,61 @@ output$barplot_file <- downloadHandler (
 # Initialize barplot variable
 barplot <- reactiveVal()
 # Build the plot clicking on the visualize button
-# TODO : Look how to build the plot
 observeEvent(input$build_barplot, {
-	# Build the plot with ggplot function
-	barplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
-	mean_table <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
-	samples_id <- rownames(mean_table)
-	rownames(mean_table) <- NULL
-	barplot_table <- cbind(samples_id, mean_table)
-	names(barplot_table)[2] <- "average_tpms"
 
+	barplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
+
+	if(input$xaxis == "Sample"){
+		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
+		sd_tpms <- data.frame(apply(barplot_data, 2, sd))
+		samples_id <- rownames(mean_tpms)
+		rownames(mean_tpms) <- NULL
+		rownames(sd_tpms) <- NULL
+		barplot_table <- cbind(samples_id, mean_tpms, sd_tpms)
+		names(barplot_table)[2] <- "mean_TPMs"
+		names(barplot_table)[3] <- "sd_TPMs"
+		x <- "samples_id"
+		# Add sd : function(x) c(mean=mean(x),sd=sd(x))
+	} else if (input$xaxis == "Condition"){
+		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
+		samples_id <- rownames(mean_tpms)
+		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% samples_id)
+		rownames(mean_tpms) <- NULL
+		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms)
+		names(mean_metadata)[3] <- "mean_TPMs"
+		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=sd(mean_TPMs))
+		x <- input$barplot_metadata
+	}
+
+	# Build the plot with ggplot function
 	plot <- print(
 		ggplot(
 			data = barplot_table,
 			aes(
-				x = samples_id,
-				y = average_tpms
+				x = get(x),
+				y = mean_TPMs
 			)
 		)
 		+ geom_bar(
 			stat = "identity"
 		)
+		+ geom_errorbar(
+			aes(
+				ymin=mean_TPMs-sd_TPMs, 
+				ymax=mean_TPMs+sd_TPMs
+			), 
+			width=.2,
+            position=position_dodge(.9)
+        )
+		+ geom_text(
+			aes(
+				label = as.character(round(mean_TPMs,2))
+			),
+			vjust = 1.5,
+			colour = "white"
+		)
+		+ xlab(x)
+		+ ylab("mean(TPMs)")
 	)
 	# Fill the barplot reactive variable with the plot
 	barplot(plot)
