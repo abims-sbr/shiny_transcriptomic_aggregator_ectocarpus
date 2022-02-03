@@ -91,15 +91,10 @@ server <- function(input, output, session){
 
 	observe ({
 		# Remove private samples in tpms file
-		tpms_data <- tpms_data_table()[, samples_data_table()[,"sample_id"]]
+		tpms_data <- tpms_data_table()[, colnames(tpms_data_table()) %in% samples_data_table()[,"sample_id"]]
 		tpms_data_table(cbind(tpms_data_table()["gene_id"], tpms_data))
 
 		initial_table <- merge(genes_data_table(), tpms_data_table(), by=colnames(genes_data_table()["gene_id"]))
-		# TODO : Better implemant gene_list filter with other filters
-		# Update table by gene list file
-		if (length(genes_list()) > 0) {
-			initial_table <- subset(initial_table, initial_table[,1] %in% genes_list()[[1]])
-		}		
 		final_table(initial_table)
 	})
 

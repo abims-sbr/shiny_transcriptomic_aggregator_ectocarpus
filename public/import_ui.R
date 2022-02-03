@@ -32,15 +32,6 @@ tabItem(tabName = "import_tab",
 			        width = "100%"
 			    )
 		    ),
-		    fluidRow(
-			    fileInput(
-			   		inputId = "genes_list_file", 
-			   		label = "Import Genes List (.txt/.csv) [OPTIONAL]",
-			        multiple = FALSE,
-			        accept = c("text/csv","text/comma-separated-values,text/plain",".csv"),
-			        width = "100%"
-			    )
-			),
 			fluidRow(
 			    actionButton(
 			    	inputId = "reset_files",

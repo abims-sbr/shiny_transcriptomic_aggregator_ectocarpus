@@ -4,7 +4,6 @@ tabItem(tabName = "barplot_tab",
 		status = "primary",
 		solidHeader = TRUE,
 		width = 12,
-		# TODO : Create the filters
     	fluidRow(
 			column(3,
 				selectInput(

@@ -50,8 +50,6 @@ TPM, genes and samples data file are required in this case and should be present
 
 * gene_id and sample_id should be unique
 
-A gene list file can also be imported in order to filter the table according to several genes.
-
 
 ### Table
 
