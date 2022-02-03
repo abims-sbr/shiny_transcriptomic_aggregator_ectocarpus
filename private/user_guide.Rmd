@@ -1,0 +1,70 @@
+---
+title: "Shiny Transcriptomic Aggregator user guide"
+author: "Romain Dallet"
+output: html_document
+runtime: shiny
+---
+
+## Introduction
+---
+
+Shiny Transcriptomic Aggregator is a web-based application designed to explore RNA-seq data.
+
+The application consists of several tabs allowing users to easily import, analyze, visualize and explore RNA Seq data. 
+
+## Features
+---
+
+### Import data
+
+By default, a set of ectocarpus data is already load. But you can import new files using the file browsers in the "Import data" tab.
+
+TPM, genes and samples data file are required in this case and should be presented as follows :
+
+- TPMs file (.csv)
+
+	| gene_id*    | sample1   | sample2   | ... |
+	| ----------- | --------- | ----------| --- |
+	| (character) | (numeric) | (numeric) | ... |
+	| gene1       | TPM       | TPM       | ... |
+	| gene2       | TPM       | TPM       | ... |
+	| ...         |  ...      | ...       | ... |
+
+- Genes data file (.csv)
+
+	| gene_id*    | gene_metadata_1 | gene_metadata_2 | ... |
+	| ----------- | --------------- | --------------- | --- |
+	| (character) | (character)     | (character)     | ... |
+	| gene1       | value           | value           | ... |
+	| gene2       | value           | value           | ... |
+	| ...         |  ...            | ...             | ... |
+
+- Samples data file (.csv)
+
+	| sample_id*  | sample_name | private   | sample_metadata_1 | sample_metadata_2 | ... |
+	| ------------| ----------- | --------- | ----------------- | ----------------- | --- |
+	| (character) | (character) | (boolean) | (character)       | (character)       | ... |
+	| sample1     | name        | TRUE      | value             | value             | ... |
+	| sample2     | name        | FALSE     | value             | value             | ... |
+	| ...         |  ...        | ...       | ...               | ...               | ... |
+
+* gene_id and sample_id should be unique
+
+A gene list file can also be imported in order to filter the table according to several genes.
+
+
+### Table
+
+The table tab consists in two collapsible filter panel, one for samples metadata and one for genes metadata, a collapsible sample list and a table.
+
+Both filter panels and the sample list allow to display a subset of the table according to the filters chosen. Applying filters, clicking on the "Apply filters" button under the sample list will update the table.
+
+The table is a dynamic overview of your filtered data. Many features are provided such as searching, sorting or exporting for example.
+
+
+### Charts
+
+#### Barplot
+#### Boxplot
+#### Dotplot
+#### Heatmap
