@@ -1,0 +1,13 @@
+---
+title: "Shiny Transcriptomic Aggregator user guide"
+author: "Romain Dallet"
+output: html_document
+runtime: shiny
+---
+
+## Introduction
+---
+
+Shiny Transcriptomic Aggregator is a web-based application designed to explore RNA-seq data.
+
+The application consists of several tabs allowing users to easily import, analyze, visualize and explore RNA Seq data. 

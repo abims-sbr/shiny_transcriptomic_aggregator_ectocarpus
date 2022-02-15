@@ -77,19 +77,16 @@ barplot <- reactiveVal()
 # Build the plot clicking on the visualize button
 observeEvent(input$build_barplot, {
 
-	barplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
+	barplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
 
 	if(input$xaxis == "Sample"){
-		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
-		sd_tpms <- data.frame(apply(barplot_data, 2, sd))
-		samples_id <- rownames(mean_tpms)
-		rownames(mean_tpms) <- NULL
-		rownames(sd_tpms) <- NULL
-		barplot_table <- cbind(samples_id, mean_tpms, sd_tpms)
+		mean_tpms <- data.frame(sapply(barplot_data, mean))
+		sd_tpms <- data.frame(sapply(barplot_data, sd))
+		barplot_table <- merge(mean_tpms, sd_tpms, by="row.names")
+		names(barplot_table)[1] <- "samples_id"
 		names(barplot_table)[2] <- "mean_TPMs"
 		names(barplot_table)[3] <- "sd_TPMs"
 		x <- "samples_id"
-		# Add sd : function(x) c(mean=mean(x),sd=sd(x))
 	} else if (input$xaxis == "Condition"){
 		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
 		samples_id <- rownames(mean_tpms)
@@ -106,7 +103,7 @@ observeEvent(input$build_barplot, {
 		ggplot(
 			data = barplot_table,
 			aes(
-				x = get(x),
+				x = as.character(get(x)),
 				y = mean_TPMs
 			)
 		)

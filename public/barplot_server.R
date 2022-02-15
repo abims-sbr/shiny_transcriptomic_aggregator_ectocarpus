@@ -87,7 +87,6 @@ observeEvent(input$build_barplot, {
 		names(barplot_table)[2] <- "mean_TPMs"
 		names(barplot_table)[3] <- "sd_TPMs"
 		x <- "samples_id"
-		# Add sd : function(x) c(mean=mean(x),sd=sd(x))
 	} else if (input$xaxis == "Condition"){
 		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
 		samples_id <- rownames(mean_tpms)
@@ -104,7 +103,7 @@ observeEvent(input$build_barplot, {
 		ggplot(
 			data = barplot_table,
 			aes(
-				x = get(x),
+				x = as.character(get(x)),
 				y = mean_TPMs
 			)
 		)

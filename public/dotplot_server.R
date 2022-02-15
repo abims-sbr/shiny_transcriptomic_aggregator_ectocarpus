@@ -84,13 +84,16 @@ output$dotplot <- downloadHandler (
 dotplot <- reactiveVal()
 # TODO : aes x and y not work
 observeEvent(input$build_dotplot, {
+
+	dotplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
+
 	plot <- print(
 		ggplot(
-			data = final_table(),
+			data = dotplot_data,
 			aes(
 				x = log2(get(input$dotplot_sample_x)),
-				y = log2(get(input$dotplot_sample_y)),
-				fill = final_table()[,1]
+				y = log2(get(input$dotplot_sample_y))#,
+				#fill = dotplot_data[,1]
 			)
 		)
 		+ geom_dotplot(

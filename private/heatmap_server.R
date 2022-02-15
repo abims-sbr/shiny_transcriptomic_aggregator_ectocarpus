@@ -64,9 +64,9 @@ heatmap <- reactiveVal()
 # Build the plot clicking on the visualize button
 observeEvent(input$build_heatmap, {
 
-	tpms_table <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
-	rownames(tpms_table) <- final_table()[,1]
-	tpms_matrix <- data.matrix(tpms_table)
+	heatmap_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
+	rownames(heatmap_data) <- final_table()[,1]
+	heatmap_matrix <- data.matrix(heatmap_data)
 
 	if(input$color == "YellowBlue"){
 		color_palette <- colorRampPalette(c("#FFCE00","#FFFFFF","#6B8BA3"))(10)
@@ -74,9 +74,8 @@ observeEvent(input$build_heatmap, {
 		color_palette <- brewer.pal(10,input$color)
 	}
 
-	# TODO : Test for subset of genes
 	plot <- pheatmap(
-		scale(tpms_matrix, center=TRUE, scale=TRUE),
+		scale(heatmap_matrix, center=TRUE, scale=TRUE),
 		color=color_palette,
 		scale="row",
 		angle_col="45"

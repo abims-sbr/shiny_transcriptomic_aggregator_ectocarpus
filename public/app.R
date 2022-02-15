@@ -1,10 +1,3 @@
-# Set default repo from CRAN
-#options(repos=structure(c(CRAN="https://cran.rstudio.com/")))
-# Update installed packages
-#update.packages(ask=FALSE, checkBuilt=TRUE)
-# Install some packages
-#install.packages(c('shiny', 'shinydashboard', 'shinyjs', 'shinyBS', 'shinyWidgets', 'markdown', 'DT', 'data.table', 'pheatmap', 'ggplot2', 'Hmisc', 'reshape', 'rlist', 'dplyr', 'plyr'))
-
 # Load packages
 library(shiny)
 library(shinydashboard)
@@ -34,26 +27,27 @@ ui <- tagList(
 		dashboardHeader(title = HTML(paste0("Shiny Transcriptomic Aggregator - ", project)), titleWidth = 450),
 		dashboardSidebar(
 			sidebarMenu(id = "tabs",
+				menuItem("Home", tabName = "home_tab", icon = icon("home")),
 				menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
-				menuItem("Import data", tabName = "import_tab", icon = icon("file-import")),
 				menuItem("Table", tabName = "table_tab", icon = icon("table")),
 				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
 				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
 				#menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
-				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar"))
-			)
+				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar")),
+				menuItem("Import new data", tabName = "import_tab", icon = icon("file-import"))			)
 		),
 		dashboardBody(
 			useShinyjs(),
 			includeCSS("www/custom.css"),
 			tabItems(
+				source("home_ui.R", local = TRUE)$value,
 				source("guide_ui.R", local = TRUE)$value,
-				source("import_ui.R", local = TRUE)$value,
 				source("table_ui.R", local = TRUE)$value,
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
 				source("dotplot_ui.R", local = TRUE)$value,
-				source("heatmap_ui.R", local = TRUE)$value
+				source("heatmap_ui.R", local = TRUE)$value,
+				source("import_ui.R", local = TRUE)$value				
 			)
 		)
 	),
@@ -65,6 +59,7 @@ ui <- tagList(
 # Server function
 server <- function(input, output, session){
 
+	# TODO : Render error in case of missing input file
     # Assign default data
     if(!is.null(genes_data_input)){
     	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))

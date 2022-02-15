@@ -11,6 +11,6 @@ gene_col_blacklist <- c("description", "content")
 sample_col_blacklist <- c("replicats")
 
 # Project Files
-tpms_input <- "real-data/TPMs.csv"
-genes_data_input <- "real-data/Genes_data.csv"
-samples_data_input <- "real-data/Samples_data.csv"
+tpms_input <- "real-data/tpms.csv"
+genes_data_input <- "real-data/genes.csv"
+samples_data_input <- "real-data/samples.csv"

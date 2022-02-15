@@ -105,7 +105,7 @@ boxplot <- reactiveVal()
 observeEvent(input$build_boxplot, {
 	
 	# Get TPM from final_table
-	boxplot_data <- final_table()[!(colnames(final_table()) %in% genes_inputs())]
+	boxplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
 
 	if (input$metadata == "Genes") {
 

@@ -18,12 +18,12 @@ output$samples_filters <- renderUI({
 		      	lapply(1:length(samples_inputs()), function(i) {
 		      		if (samples_inputs()[i] != "sample_id") {
 			      		column(4,
-							selectInput(
+							selectizeInput(
 			        			inputId = samples_inputs()[i],
 			        			label = paste0(capitalize(gsub("_", " ", samples_inputs()[i])), " :"),
-			                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data_table()[,i]), ","))))),
-			                	width = "200px",
-			                	selected = "All"
+			                	choices = c("All", sort(unique(unlist(strsplit(as.character(samples_data_table()[,samples_inputs()[i]]), ","))))),
+			                	selected = "All",
+			                	multiple = FALSE
 			            	)
 			      		)
 			      	}
@@ -46,7 +46,7 @@ observeEvent(input$reset_samples_values, {
 	lapply(1:length(samples_inputs()), function(i){
 		if (samples_inputs()[i] != "sample_id") {
 			# Update all the samples filters values to "All"
-	    	updateSelectInput(
+	    	updateSelectizeInput(
 	    		session = session, 
 	    		inputId = samples_inputs()[i],
 	    		selected = "All"
@@ -71,17 +71,30 @@ output$genes_filters <- renderUI({
 		bsCollapsePanel(
 			title = "Genes Metadata Filters",
 			fluidRow(
+				column(12,
+					textInput(
+	        			inputId = "gene_list",
+	        			label = "Gene list",
+	                	value = "",
+	                	placeholder = "Comma-separated list of genes [gene1,gene2,etc] (leave blank to not use)",
+	                	width = "100%"
+					)
+				)
+			),
+			fluidRow(
 				# Create one filter by genes data column except blacklist ones in conf.R
 				lapply(1:length(genes_inputs()), function(i) {
-					column(4,
-						selectInput(
-		        			inputId = genes_inputs()[i],
-		        			label = paste0(capitalize(gsub("_", " ", genes_inputs()[i])), " :"),
-		                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table()[,i]), ","))))),
-		                	selected = "All",
-		                	width = "200px"				                
+					if (genes_inputs()[i] != "gene_id") {
+						column(4,
+							selectizeInput(
+			        			inputId = genes_inputs()[i],
+			        			label = paste0(capitalize(gsub("_", " ", genes_inputs()[i])), " :"),
+			                	choices = c("All", sort(unique(unlist(strsplit(as.character(genes_data_table()[,genes_inputs()[i]]), ","))))),
+			                	selected = "All",
+			                	multiple = FALSE
+							)
 						)
-					)
+					}
 				})
 			),
 			fluidRow(
@@ -98,9 +111,14 @@ output$genes_filters <- renderUI({
 })
 # Reset genes filters values
 observeEvent(input$reset_genes_values, {
+	updateTextInput(
+    		session = session, 
+    		inputId = "gene_list",
+    		value = ""
+    )
 	lapply(1:length(genes_inputs()), function(i){
 		# Update all the genes filters values to "All"
-    	updateSelectInput(
+    	updateSelectizeInput(
     		session = session, 
     		inputId = genes_inputs()[i],
     		selected = "All"
@@ -172,7 +190,7 @@ output$table <- renderDataTable({
     	dom = 'Blfrtip',
     	order = list(0, 'asc'),
     	fixedHeader = TRUE,
-    	pageLength = 15,
+    	pageLength = 10,
 			lengthMenu = list(c(10, 15, 25, 50, 100, 200, -1),list("10", "15", "25","50","100","200","all")),
         scrollX = TRUE,
         buttons = list(
@@ -216,10 +234,18 @@ observeEvent(input$apply_filters, {
 
 	# Browse genes filters and apply them
     filtered_table <- lapply(1:length(genes_inputs()), function(i){
-		if (input[[genes_inputs()[i]]] != "All") {
-			filtered_table <- subset(new_table, new_table[,i] == input[[genes_inputs()[i]]])
-		} else {
-			filtered_table <- new_table
+    	if (genes_inputs()[i] == "gene_id") {
+    		if (input$gene_list != "") {
+    			filtered_table <- subset(new_table, new_table[,i] %in% unlist(strsplit(input$gene_list, ",")))
+    		} else {
+    			filtered_table <- new_table
+    		}
+    	} else {
+			if (input[[genes_inputs()[i]]] != "All") {
+				filtered_table <- subset(new_table, new_table[,i] == input[[genes_inputs()[i]]])
+			} else {
+				filtered_table <- new_table
+			}
 		}
 	})
 	filtered_table <- Reduce(merge, Filter(Negate(is.null), filtered_table))

@@ -22,15 +22,9 @@ observeEvent(input$samples_data_file, {
 	samples_data_table(samples_data_file)   	
 })
 
-# Gene List (Optional)
-observeEvent(input$genes_list_file, {
-	genes_list(c(read.csv(input$genes_list_file$datapath, header=FALSE, sep="\t", stringsAsFactors=FALSE, check.names=FALSE)))
-})
-
 # Reset Files
 observeEvent(input$reset_files, {
 	tpms_data_table(NULL)
 	genes_data_table(NULL)
 	samples_data_table(NULL)
-	genes_list(NULL)
 })

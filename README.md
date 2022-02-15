@@ -48,6 +48,11 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 	
 	`git clone https://github.com/abims-sbr/shiny_transcriptomic_aggregator_ectocarpus.git`
 
+- Install R packages as root :
+
+	`cd shiny_transcriptomic_aggregator_ectocarpus`
+
+	`Rscript packages.R`
 
 
 ## Configuration

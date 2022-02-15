@@ -1,4 +1,4 @@
-tabItem(tabName = "guide_tab",
+tabItem(tabName = "home_tab",
 	fluidRow(
 		box(
 			title="User guide",
@@ -6,7 +6,7 @@ tabItem(tabName = "guide_tab",
 			solidHeader = TRUE,
 			width = 12,
 			column(12,
-				includeMarkdown("user_guide.Rmd")
+				includeMarkdown("home.Rmd")
 			)
 		)
 	)
