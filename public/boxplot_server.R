@@ -75,7 +75,7 @@ observeEvent(input$build_boxplot, {
 
 # Plot output
 output$boxplot <- renderPlot({
-	print(boxplot())
+	boxplot()
 })
 
 # Download boxplot

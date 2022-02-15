@@ -57,7 +57,7 @@ observeEvent(input$build_dotplot, {
 
 # Plot output
 output$dotplot <- renderPlot({
-	print(dotplot())
+	dotplot()
 })
 
 # Download dotplot

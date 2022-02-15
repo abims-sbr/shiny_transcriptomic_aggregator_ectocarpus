@@ -48,7 +48,7 @@ observeEvent(input$build_barplot, {
 
 # Plot output
 output$barplot <- renderPlot({
-	print(barplot())
+	barplot()
 })
 
 # Download barplot

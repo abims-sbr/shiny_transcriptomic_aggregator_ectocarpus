@@ -65,7 +65,7 @@ server <- function(input, output, session){
     	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
     }
     if(!is.null(samples_data_input)){
-    	samples_data_file <- getDataFrameFromFile(samples_data_input)
+		samples_data_file <- getDataFrameFromFile(samples_data_input)
 		if("private" %in% tolower(colnames(samples_data_file))){
 			# If public instance, took of private sample data
 			if(instance_tag == "public"){
@@ -74,10 +74,10 @@ server <- function(input, output, session){
 			# Remove private column from the table
 			samples_data_file["private"] <- NULL
 		}
-    	samples_data_table <- reactiveVal(value=samples_data_file)
+		samples_data_table <- reactiveVal(value=samples_data_file)
 	}
     if(!is.null(tpms_input)){
-	    tpms_data_table <- reactiveVal(getDataFrameFromFile(tpms_input))
+		tpms_data_table <- reactiveVal(getDataFrameFromFile(tpms_input))
     }
 
 	# Variable Initialisation
