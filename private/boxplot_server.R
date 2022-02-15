@@ -75,7 +75,7 @@ observeEvent(input$build_boxplot, {
 
 # Plot output
 output$boxplot <- renderPlot({
-	print(boxplot())
+	boxplot()
 })
 
 # Download boxplot
@@ -132,26 +132,25 @@ observeEvent(input$build_boxplot, {
 		melted_data <- melt(setDT(samples_for_boxplot), id=c(as.character(x), as.character(col)))
 	}
 	# Build the plot with ggplot function
-	plot <- print(
-		ggplot(
-			data = melted_data,
-			aes(
-				x = as.character(get(x)),
-				y = log2(as.numeric(value)),
-				fill = as.character(get(col))
-			)
+	plot <- ggplot(
+		data = melted_data,
+		aes(
+			x = as.character(get(x)),
+			y = log2(as.numeric(value)),
+			fill = as.character(get(col))
 		)
-		+ geom_boxplot(
-			aes(x = get(as.character(x))),
-			outlier.colour = "black",
-			outlier.size = 1
-		)
-		+ scale_color_brewer(palette = "Set1")
-		#+ ggtitle("Boxplot")
-		+ xlab(paste0(x))
-		+ ylab("log2(TPM)")
-		+ guides(fill=guide_legend(title=paste0(col)))
-	)
+	) +
+	geom_boxplot(
+		aes(x = get(as.character(x))),
+		outlier.colour = "black",
+		outlier.size = 1
+	) +
+	scale_color_brewer(palette = "Set1") +
+	#ggtitle("Boxplot") +
+	xlab(paste0(x)) +
+	ylab("log2(TPM)") +
+	guides(fill=guide_legend(title=paste0(col)))
+	
 	# Fill the boxplot reactive variable with the plot
 	boxplot(plot)
 })

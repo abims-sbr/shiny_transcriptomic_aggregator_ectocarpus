@@ -48,7 +48,7 @@ observeEvent(input$build_barplot, {
 
 # Plot output
 output$barplot <- renderPlot({
-	print(barplot())
+	barplot()
 })
 
 # Download barplot
@@ -99,35 +99,34 @@ observeEvent(input$build_barplot, {
 	}
 
 	# Build the plot with ggplot function
-	plot <- print(
-		ggplot(
-			data = barplot_table,
-			aes(
-				x = as.character(get(x)),
-				y = mean_TPMs
-			)
+	plot <- ggplot(
+		data = barplot_table,
+		aes(
+			x = as.character(get(x)),
+			y = mean_TPMs
 		)
-		+ geom_bar(
-			stat = "identity"
-		)
-		+ geom_errorbar(
-			aes(
-				ymin=mean_TPMs-sd_TPMs, 
-				ymax=mean_TPMs+sd_TPMs
-			), 
-			width=.2,
-            position=position_dodge(.9)
-        )
-		+ geom_text(
-			aes(
-				label = as.character(round(mean_TPMs,2))
-			),
-			vjust = 1.5,
-			colour = "white"
-		)
-		+ xlab(x)
-		+ ylab("mean(TPMs)")
-	)
+	) +
+	geom_bar(
+		stat = "identity"
+	) +
+	geom_errorbar(
+		aes(
+			ymin=mean_TPMs-sd_TPMs, 
+			ymax=mean_TPMs+sd_TPMs
+		), 
+		width=.2,
+        position=position_dodge(.9)
+    ) +
+    geom_text(
+		aes(
+			label = as.character(round(mean_TPMs,2))
+		),
+		vjust = 1.5,
+		colour = "white"
+	) +
+	xlab(x) +
+	ylab("mean(TPMs)")
+
 	# Fill the barplot reactive variable with the plot
 	barplot(plot)
 })

@@ -57,7 +57,7 @@ observeEvent(input$build_dotplot, {
 
 # Plot output
 output$dotplot <- renderPlot({
-	print(dotplot())
+	dotplot()
 })
 
 # Download dotplot
@@ -87,25 +87,24 @@ observeEvent(input$build_dotplot, {
 
 	dotplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
 
-	plot <- print(
-		ggplot(
-			data = dotplot_data,
-			aes(
-				x = log2(get(input$dotplot_sample_x)),
-				y = log2(get(input$dotplot_sample_y))#,
-				#fill = dotplot_data[,1]
-			)
+	plot <- ggplot(
+		data = dotplot_data,
+		aes(
+			x = log2(get(input$dotplot_sample_x)),
+			y = log2(get(input$dotplot_sample_y))#,
+			#fill = dotplot_data[,1]
 		)
-		+ geom_dotplot(
-			binaxis = 'y',
-			stackdir = 'center',
-			dotsize = 0.5
-		)
-		+ scale_color_brewer(palette = "Set1")
-		#+ ggtitle("Dotplot")
-		+ xlab(paste0(input$dotplot_sample_x, " (log2(TPM))"))
-		+ ylab(paste0(input$dotplot_sample_y, " (log2(TPM))"))
-		+ guides(fill=guide_legend(title="Genes"))
-	)
+	) +
+	geom_dotplot(
+		binaxis = 'y',
+		stackdir = 'center',
+		dotsize = 0.5
+	) +
+	scale_color_brewer(palette = "Set1")
+	#ggtitle("Dotplot") +
+	xlab(paste0(input$dotplot_sample_x, " (log2(TPM))")) +
+	ylab(paste0(input$dotplot_sample_y, " (log2(TPM))")) +
+	guides(fill=guide_legend(title="Genes"))
+
 	dotplot(plot)
 })
