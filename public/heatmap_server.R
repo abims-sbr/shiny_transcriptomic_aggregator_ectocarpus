@@ -61,7 +61,7 @@ output$heatmap_file <- downloadHandler (
 
 # Initialize heatmap variable
 heatmap <- reactiveVal()
-# TODO : Build the plot only if a subset of genes is selected or warn the user there are lot of data
+# TODO : Build the plot only if a subset of genes is selected or warn the user there are lot of data or nb gene max (~100) ?
 # Build the plot clicking on the visualize button
 observeEvent(input$build_heatmap, {
 
