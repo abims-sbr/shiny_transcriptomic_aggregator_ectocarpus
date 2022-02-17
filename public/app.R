@@ -1,20 +1,26 @@
-# Load packages
+# Shiny packages
 library(shiny)
 library(shinydashboard)
-library(shinyjs)
 library(shinyBS)
-library(shinyWidgets)
+library(shinyjs)
+#library(shinyWidgets)
+# Doc
 library(markdown)
-library(data.table)
+# Formatted text
+library(Hmisc)
+# Table
 library(DT)
+# Plots
 library(ggplot2)
 library(pheatmap)
-library(Hmisc)
 library(RColorBrewer)
+# Data manipulation
+library(data.table)
 library(reshape)
-library(rlist)
 library(plyr)
-library(dplyr)
+#library(dplyr)
+#library(rlist)
+
 
 # Load configurations
 source("conf.R", local = TRUE)
