@@ -12,7 +12,6 @@
 - NGINX <!--(≥1.12.2)-->
 
 
-
 ## Installation
 
 ### Shiny server installation
@@ -57,46 +56,6 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 
 ## Configuration
 
-### Nginx configuration
-
-```
-http {
-
-	ldap_server YOUR_LDAP_SERVER {
-        ...
-    }
-
-	server {
-	        listen 80       default_server;
-	        listen [::]:80  default_server;
-	        server_name _;
-	    
-	        location / {
-	                proxy_pass      http://127.0.0.1:3838/;
-	                proxy_redirect  http://127.0.0.1:3838/ $scheme://$host/;
-	        }
-
-	        location /shiny_transcriptomic_aggregator/ {
-	                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/;
-	                proxy_redirect  off;
-	        }
-
-	        location /shiny_transcriptomic_aggregator/private/ {
-	                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/private/;
-	                proxy_redirect  off;
-	                
-	                auth_ldap "Connection to your account required";
-	                auth_ldap_servers YOUR_LDAP_SERVER;
-	    	}
-
-	        location /shiny_transcriptomic_aggregator/public/ {
-	                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/public/;
-	                proxy_redirect  off;
-	        }
-	}
-}
-```
-
 ### Shiny server configuration
 
 /etc/shiny-server/shiny-server.conf
@@ -125,11 +84,60 @@ server {
 }
 ```
 
+### Nginx configuration
+
+Create `/etc/nginx/conf.d/sta.conf` file
+
+```
+server {
+        listen 80       default_server;
+        listen [::]:80  default_server;
+        server_name _;
+    
+        location / {
+                proxy_pass      http://127.0.0.1:3838/;
+                proxy_redirect  http://127.0.0.1:3838/ $scheme://$host/;
+        }
+
+        location /shiny_transcriptomic_aggregator/ {
+                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/;
+                proxy_redirect  off;
+        }
+
+        location /shiny_transcriptomic_aggregator/private/ {
+                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/private/;
+                proxy_redirect  off;
+                
+                auth_ldap "Connection to your account required";
+                auth_ldap_servers YOUR_LDAP_SERVER;
+				}
+
+        location /shiny_transcriptomic_aggregator/public/ {
+                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/public/;
+                proxy_redirect  off;
+        }
+}
+```
+
+Add a `/etc/shiny-server/conf.d/ldap-auth.conf` file and complete it
+
+```
+ldap_server ldap_name {
+        url ldap_url;
+        group_attribute uniquemember;
+        group_attribute_is_dn on;
+        # list of allowed users
+        require user "uid=,ou=,dc=,dc=";
+}
+
+```
+
+
 ### Application configuration
 
 2 instances provided : One public and one private.
 
-The configuration of your app can be change in the private/app-conf.R and public/app-conf.R files.
+The configuration of your app can be change in the private/conf.R and public/conf.R files.
 
 ```R
 ### Shiny app configurations ###
@@ -140,12 +148,17 @@ project <- "Project Name"
 # Instance status ("public" OR "private")
 instance_tag <- "public"
 
+# Columns to ignore in metadata file
+gene_col_blacklist <- c("description", "content")
+sample_col_blacklist <- c("replicats")
+
 # Project Files
 tpms_input <- "data/TPMs.csv"
 genes_data_input <- "data/Genes_data.csv"
 samples_data_input <- "data/Samples_data.csv"
 
-# Columns to ignore in metadata file
-gene_col_blacklist <- c("description", "content")
-sample_col_blacklist <- c("replicats", "sample_name")
 ```
+
+## Logs
+
+Logs are available in `/var/log/shiny-server`
