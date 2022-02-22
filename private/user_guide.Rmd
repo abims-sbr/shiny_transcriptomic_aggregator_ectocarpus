@@ -12,11 +12,11 @@ The table is the main part of Shiny Transcriptomic Aggregator.
 
 It is used to analyze, visualize, explore and filter RNA Seq data.
 
-It consists in two collapsible filter panel, one for samples metadata and one for genes metadata, a collapsible sample list and the table. Both filter panels and the sample list allow to display a subset of the table according to the filters chosen. 
+It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata. Below these panels are a collapsible sample list and the table. The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen. 
 
 The table is a dynamic overview of your data. Many features are provided such as searching, sorting or exporting for example.
 
-Applying filters, clicking on the "Apply filters" button under the sample list will update the table.
+To apply filters, click on the "Apply filters" button under the sample list and this will update the table.
 
 **It is the data in the displayed table that are used to build plots**
 
@@ -40,9 +40,9 @@ Use the Visualize button to preview the generated graph. It can then be download
 ## Import new data
 ---
 
-By default, a set of ectocarpus data is already load. But you can import new files using the file browsers in the "Import data" tab.
+By default, a set of Ectocarpus data is already loaded. But you can import new files using the file browsers in the "Import data" tab.
 
-TPM, genes and samples data file are required in this case and should be presented as follows :
+TPM, genes and samples data files are required in this case and should be constructed as follows :
 
 - TPMs file (.csv)
 

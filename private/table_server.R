@@ -210,45 +210,50 @@ output$table <- renderDataTable({
 observeEvent(input$apply_filters, {
 
 	# TODO : Render error message if one or more files are missing
+	withProgress(message = 'Building table', value = 0, {
 
-	# Browse samples filters and apply them
-	samples_data <- lapply(1:length(samples_inputs()), function(i){
-		# Remove the samples that are unchecked in sample list
-		if (samples_inputs()[i] == "sample_id") {
-			samples_data <- subset(samples_data_table(), samples_data_table()[,i] %in% input[[samples_inputs()[i]]])
-		} else {
-			# Apply samples filters on the samples data table 
-			if (input[[samples_inputs()[i]]] != "All") {
-				samples_data <- subset(samples_data_table(), samples_data_table()[,i] == input[[samples_inputs()[i]]])
-			}
-		}
-	})
-	# Reduce take a list of tables filtered by columns and merge them keeping only the similarities between each table
-	# Filter and Negate remove NULL tables that are not filtered
-	samples_data <- Reduce(merge, Filter(Negate(is.null), samples_data))
-				
-    # Filter TPMs data table by samples respecting samples filters
-	tpms_data <- cbind(tpms_data_table()["gene_id"], tpms_data_table()[colnames(tpms_data_table()) %in% samples_data[,"sample_id"]])
-	# Merge filtered TPMS and genes metadata files
-	new_table <- merge(genes_data_table(), tpms_data, by=colnames(genes_data_table()["gene_id"]))
-
-	# Browse genes filters and apply them
-    filtered_table <- lapply(1:length(genes_inputs()), function(i){
-    	if (genes_inputs()[i] == "gene_id") {
-    		if (input$gene_list != "") {
-    			filtered_table <- subset(new_table, new_table[,i] %in% unlist(strsplit(input$gene_list, ",")))
-    		} else {
-    			filtered_table <- new_table
-    		}
-    	} else {
-			if (input[[genes_inputs()[i]]] != "All") {
-				filtered_table <- subset(new_table, new_table[,i] == input[[genes_inputs()[i]]])
+		incProgress(1/3, detail = paste("Apply samples filters"))
+		# Browse samples filters and apply them
+		samples_data <- lapply(1:length(samples_inputs()), function(i){
+			# Remove the samples that are unchecked in sample list
+			if (samples_inputs()[i] == "sample_id") {
+				samples_data <- subset(samples_data_table(), samples_data_table()[,i] %in% input[[samples_inputs()[i]]])
 			} else {
-				filtered_table <- new_table
+				# Apply samples filters on the samples data table 
+				if (input[[samples_inputs()[i]]] != "All") {
+					samples_data <- subset(samples_data_table(), samples_data_table()[,i] == input[[samples_inputs()[i]]])
+				}
 			}
-		}
-	})
-	filtered_table <- Reduce(merge, Filter(Negate(is.null), filtered_table))
+		})
+		# Reduce take a list of tables filtered by columns and merge them keeping only the similarities between each table
+		# Filter and Negate remove NULL tables that are not filtered
+		samples_data <- Reduce(merge, Filter(Negate(is.null), samples_data))
+					
+	    # Filter TPMs data table by samples respecting samples filters
+		tpms_data <- cbind(tpms_data_table()["gene_id"], tpms_data_table()[colnames(tpms_data_table()) %in% samples_data[,"sample_id"]])
+		# Merge filtered TPMS and genes metadata files
+		new_table <- merge(genes_data_table(), tpms_data, by=colnames(genes_data_table()["gene_id"]))
 
-	final_table(filtered_table)
+		incProgress(1/3, detail = paste("Apply genes filters"))
+		# Browse genes filters and apply them
+	    filtered_table <- lapply(1:length(genes_inputs()), function(i){
+	    	if (genes_inputs()[i] == "gene_id") {
+	    		if (input$gene_list != "") {
+	    			filtered_table <- subset(new_table, new_table[,i] %in% unlist(strsplit(input$gene_list, ",")))
+	    		} else {
+	    			filtered_table <- new_table
+	    		}
+	    	} else {
+				if (input[[genes_inputs()[i]]] != "All") {
+					filtered_table <- subset(new_table, new_table[,i] == input[[genes_inputs()[i]]])
+				} else {
+					filtered_table <- new_table
+				}
+			}
+		})
+		filtered_table <- Reduce(merge, Filter(Negate(is.null), filtered_table))
+		incProgress(1/3, detail = paste("Render table"))
+		final_table(filtered_table)
+		
+	})
 })

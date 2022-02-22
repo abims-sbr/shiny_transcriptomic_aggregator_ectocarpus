@@ -162,3 +162,26 @@ samples_data_input <- "data/Samples_data.csv"
 ## Logs
 
 Logs are available in `/var/log/shiny-server`
+
+
+## Update Shiny Transcriptomic Aggregator 
+
+### Update the code
+
+```
+cd /srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus
+git pull origin master
+```
+
+### Update data
+
+- Private :
+
+`scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/`
+
+- Public :
+
+`scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/`
+
+
+Verify `tpms_input`, `genes_data_input` and `samples_data_input` variables in `private/conf.R` and `public/conf.R` files have the good file path.
