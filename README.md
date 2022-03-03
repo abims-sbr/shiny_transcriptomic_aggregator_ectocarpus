@@ -4,10 +4,16 @@
 
 - R (≥3.0.2)
 
+```
+sudo yum install R
+```
+
 - Shiny
 
-	`sudo su - \
-	-c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""`
+```
+sudo su - \
+	-c "R -e \"install.packages('shiny', repos='https://cran.rstudio.com/')\""
+```
 
 - NGINX <!--(≥1.12.2)-->
 
@@ -38,6 +44,9 @@ Following [this tutorial](https://www.linode.com/docs/development/r/how-to-deplo
 
 ![](https://www.linode.com/docs/development/r/how-to-deploy-rshiny-server-on-ubuntu-and-debian/shiny-welcome.png)
 
+6. Give the right to the shiny user in `/srv/shiny-server`
+
+        `chown -R shiny:shiny /srv/shiny-server`
 
 ### Application installation
 
@@ -177,11 +186,15 @@ git pull origin master
 
 - Private :
 
-`scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/`
+```
+scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/
+```
 
 - Public :
 
-`scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/`
+```
+scp path/to/your/data root@IP:/srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus/private/real-data/
+```
 
 
 Verify `tpms_input`, `genes_data_input` and `samples_data_input` variables in `private/conf.R` and `public/conf.R` files have the good file path.
