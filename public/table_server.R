@@ -153,11 +153,6 @@ output$samples_id_filter <- renderUI({
 		        	width = "200px"
 				)
 		    )
-		),
-		actionButton(
-			inputId = "apply_filters",
-			label = "Apply filters",
-			class = "btn btn-primary"
 		)
 	)	
 })
@@ -181,7 +176,7 @@ observeEvent(input$unselect_all, {
 })
 
 # Build the table
-output$table <- renderDataTable({
+output$table <- renderDT({
 	final_table()
 },
 	rownames = FALSE,

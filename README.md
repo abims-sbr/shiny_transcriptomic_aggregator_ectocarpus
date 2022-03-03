@@ -185,8 +185,6 @@ Add the following block in the proxy conf for websockets
         RewriteEngine on
         RewriteCond %{HTTP:Upgrade} =websocket
         RewriteRule /(.*) ws://rshiny.sb-roscoff.fr/$1 [P,L]
-        RewriteCond %{HTTP:Upgrade} !=websocket
-        RewriteRule /(.*) http://rshiny.sb-roscoff.fr/$1 [P,L]
 ```
 
 ## Logs
