@@ -95,6 +95,17 @@ server {
 
 ### Nginx configuration
 
+Add few lines in `/etc/nginx/nginx.conf` for websockets
+
+```
+http {
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        ''      close;
+    }
+}
+```
+
 Create `/etc/nginx/conf.d/sta.conf` file
 
 ```
@@ -103,27 +114,21 @@ server {
         listen [::]:80  default_server;
         server_name _;
     
-        location / {
-                proxy_pass      http://127.0.0.1:3838/;
-                proxy_redirect  http://127.0.0.1:3838/ $scheme://$host/;
+        location /ectocarpus/ {
+                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator_ectocarpus/public/;
+                proxy_redirect  off;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
         }
 
-        location /shiny_transcriptomic_aggregator/ {
-                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/;
+        location /ectocarpus/private/ {
+                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator_ectocarpus/private/;
                 proxy_redirect  off;
-        }
-
-        location /shiny_transcriptomic_aggregator/private/ {
-                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/private/;
-                proxy_redirect  off;
+                proxy_set_header Upgrade $http_upgrade;
+                proxy_set_header Connection $connection_upgrade;
                 
-                auth_ldap "Connection to your account required";
-                auth_ldap_servers YOUR_LDAP_SERVER;
-				}
-
-        location /shiny_transcriptomic_aggregator/public/ {
-                proxy_pass      http://127.0.0.1:3838/shiny_transcriptomic_aggregator/public/;
-                proxy_redirect  off;
+                auth_ldap "Connection to your sb-roscoff account required";
+                auth_ldap_servers sb-roscoff;
         }
 }
 ```
@@ -166,6 +171,22 @@ tpms_input <- "data/TPMs.csv"
 genes_data_input <- "data/Genes_data.csv"
 samples_data_input <- "data/Samples_data.csv"
 
+```
+
+### Note
+
+Add the following block in the proxy conf for websockets
+
+```
+<VirtualHost *:443>
+        ProxyPreserveHost On
+        ProxyPass / http://rshiny.sb-roscoff.fr/
+        ProxyPassReverse / http://rshiny.sb-roscoff.fr/
+        RewriteEngine on
+        RewriteCond %{HTTP:Upgrade} =websocket
+        RewriteRule /(.*) ws://rshiny.sb-roscoff.fr/$1 [P,L]
+        RewriteCond %{HTTP:Upgrade} !=websocket
+        RewriteRule /(.*) http://rshiny.sb-roscoff.fr/$1 [P,L]
 ```
 
 ## Logs
