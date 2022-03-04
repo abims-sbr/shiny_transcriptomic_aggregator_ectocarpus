@@ -1,6 +1,8 @@
 .RData
 .Rhistory
-public/Rplots.pdf
-private/Rplots.pdf
 public/data/
+public/conf.R
+public/Rplots.pdf
 private/data/
+private/conf.R
+private/Rplots.pdf
