@@ -34,7 +34,7 @@ output$samples_filters <- renderUI({
 				column(3,
 					actionButton(
 						inputId = "reset_samples_values",
-						label = "Reset filters" 
+						label = "Reset sample filters" 
 					)
 				)
 			)				
@@ -102,7 +102,7 @@ output$genes_filters <- renderUI({
 				column(3,
 					actionButton(
 						inputId = "reset_genes_values",
-						label = "Reset filters" 
+						label = "Reset gene filters" 
 					)
 				)
 			)
@@ -124,6 +124,39 @@ observeEvent(input$reset_genes_values, {
     		selected = "All"
     	)
 	})
+})
+
+# Reset ALL filters
+observeEvent(input$reset_all_filters, {
+	lapply(1:length(samples_inputs()), function(i){
+		if (samples_inputs()[i] != "sample_id") {
+			# Update all the samples filters values to "All"
+	    	updateSelectizeInput(
+	    		session = session, 
+	    		inputId = samples_inputs()[i],
+	    		selected = "All"
+	    	)
+	    }
+	})
+	updateTextInput(
+    		session = session, 
+    		inputId = "gene_list",
+    		value = ""
+    )
+	lapply(1:length(genes_inputs()), function(i){
+		# Update all the genes filters values to "All"
+    	updateSelectizeInput(
+    		session = session, 
+    		inputId = genes_inputs()[i],
+    		selected = "All"
+    	)
+	})
+	updateCheckboxGroupInput(
+		session = session,
+		inputId = "sample_id",
+      	choices = as.character(samples_data_table()[,1][order(samples_data_table()[,1])]),
+      	selected = as.character(samples_data_table()[,1][order(samples_data_table()[,1])])
+	)
 })
 
 # Build samples list
@@ -204,7 +237,6 @@ output$table <- renderDT({
 # Apply filters on data
 observeEvent(input$apply_filters, {
 
-	# TODO : Render error message if one or more files are missing
 	withProgress(message = 'Building table', value = 0, {
 
 		incProgress(1/3, detail = paste("Apply samples filters"))

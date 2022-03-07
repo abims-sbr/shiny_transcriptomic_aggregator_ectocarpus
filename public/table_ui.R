@@ -12,6 +12,11 @@ tabItem(tabName = "table_tab",
 				label = "Apply filters",
 				class = "btn btn-primary",
 				width = "100%"
+			),
+			actionButton(
+				inputId = "reset_all_filters",
+				label = "Reset all filters",
+				width = "100%"
 			)
 		)		
 	),
