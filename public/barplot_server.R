@@ -88,13 +88,15 @@ observeEvent(input$build_barplot, {
 		names(barplot_table)[3] <- "sd_TPMs"
 		x <- "samples_id"
 	} else if (input$xaxis == "Condition"){
-		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
+		mean_tpms <- data.frame(sapply(barplot_data, mean)) #table with sample name and tpm mean by sample
+		sd_tpms <- data.frame(sapply(barplot_data, sd))
 		samples_id <- rownames(mean_tpms)
 		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% samples_id)
 		rownames(mean_tpms) <- NULL
-		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms)
+		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms, sd_tpms)
 		names(mean_metadata)[3] <- "mean_TPMs"
-		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=sd(mean_TPMs))
+		names(mean_metadata)[4] <- "sd_TPMs"
+		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=mean(sd_TPMs))
 		x <- input$barplot_metadata
 	}
 
@@ -125,6 +127,7 @@ observeEvent(input$build_barplot, {
 		colour = "white"
 	) +
 	xlab(x) +
+	theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
 	ylab("mean(TPMs)")
 
 	# Fill the barplot reactive variable with the plot
