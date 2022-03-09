@@ -1,0 +1,74 @@
+---
+title: "Shiny Transcriptomic Aggregator user guide"
+author: "Romain Dallet"
+output: html_document
+runtime: shiny
+---
+
+## Table
+---
+
+The table is the main part of Shiny Transcriptomic Aggregator.
+
+It is used to analyze, visualize, explore and filter RNA Seq data.
+
+It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata. Below these panels are a collapsible sample list and the table. The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen. 
+
+To apply filters, click on the "Apply filters" button next to the gene metadata filter panel. This will update the table.
+
+The table is a dynamic overview of your data. Many features are provided such as searching, sorting or exporting for example.
+
+**It is the data in the displayed table that are used to build plots**
+
+
+## Charts
+---
+
+4 charts are available :
+
+- Barplot
+
+- Boxplot
+
+- Dotplot (*WIP*)
+
+- Heatmap
+
+Use the Visualize button to preview the generated graph. It can then be downloaded in different formats.
+
+
+## Import new data
+---
+
+You can import a new set of data using the file browsers in the "Import new data" tab.
+
+TPM, genes and samples data files are required in this case and should be constructed as follows :
+
+- TPMs file (.csv)
+
+	| gene_id*    | sample1   | sample2   | ... |
+	| ----------- | --------- | ----------| --- |
+	| (character) | (numeric) | (numeric) | ... |
+	| gene1       | TPM       | TPM       | ... |
+	| gene2       | TPM       | TPM       | ... |
+	| ...         |  ...      | ...       | ... |
+
+- Genes data file (.csv)
+
+	| gene_id*    | gene_metadata_1 | gene_metadata_2 | ... |
+	| ----------- | --------------- | --------------- | --- |
+	| (character) | (character)     | (character)     | ... |
+	| gene1       | value           | value           | ... |
+	| gene2       | value           | value           | ... |
+	| ...         |  ...            | ...             | ... |
+
+- Samples data file (.csv)
+
+	| sample_id*  | sample_name | private   | sample_metadata_1 | sample_metadata_2 | ... |
+	| ------------| ----------- | --------- | ----------------- | ----------------- | --- |
+	| (character) | (character) | (boolean) | (character)       | (character)       | ... |
+	| sample1     | name        | TRUE      | value             | value             | ... |
+	| sample2     | name        | FALSE     | value             | value             | ... |
+	| ...         |  ...        | ...       | ...               | ...               | ... |
+
+*(&ast;) gene_id and sample_id should be unique*

@@ -6,3 +6,6 @@ public/Rplots.pdf
 private/data/
 private/conf.R
 private/Rplots.pdf
+dev/data/
+dev/conf.R
+dev/Rplots.pdf
