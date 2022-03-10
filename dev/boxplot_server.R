@@ -13,7 +13,7 @@ output$metadata_sample_col <- renderUI({
 		selectInput(
 			inputId = "meta_sample_col",
 			label = "Color by :",
-			choices = subset(samples_inputs(), !(samples_inputs() %in% input$meta_sample_x))
+			choices = samples_inputs()
 		)
 	)
 })
@@ -31,7 +31,7 @@ output$metadata_gene_col <- renderUI({
 		selectInput(
 			inputId = "meta_gene_col",
 			label = "Color by :",
-			choices = subset(genes_inputs(), !(genes_inputs() %in% input$meta_gene_x))
+			choices = genes_inputs()
 		)
 	)
 })
@@ -50,6 +50,7 @@ observeEvent(input$build_boxplot, {
 				)
 			),
 			fluidRow(
+				column(6),
 				column(2,
 			    	selectInput(
 	        			inputId = "boxplot_ext",
@@ -121,7 +122,6 @@ observeEvent(input$build_boxplot, {
 	boxplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
 
 	if (input$metadata == "Genes") {
-
 		x <- input$meta_gene_x
 		col <- input$meta_gene_col
 

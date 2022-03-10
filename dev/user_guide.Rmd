@@ -30,8 +30,6 @@ The table is a dynamic overview of your data. Many features are provided such as
 
 - Boxplot
 
-- Dotplot (*WIP*)
-
 - Heatmap
 
 Use the Visualize button to preview the generated graph. It can then be downloaded in different formats.
