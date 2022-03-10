@@ -23,13 +23,27 @@ observeEvent(input$build_barplot, {
 				)
 			),
 			fluidRow(
-				column(8),
+				column(6),
 				column(2,
 			    	selectInput(
 	        			inputId = "barplot_ext",
     	    			label = "Download format :",
         	        	choices = c("PNG", "PDF", "SVG", "EPS"),
             	    	width = "200px"
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "barplot_width",
+    	    			label = "Width (px)",
+        	        	value = 1500
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "barplot_height",
+    	    			label = "Heigth (px)",
+        	        	value = 1000
 					)
 				),
 				column(2,
@@ -58,18 +72,18 @@ output$barplot_file <- downloadHandler (
 	},
 	content = function(file){
 		if (input$barplot_ext == "PNG"){
-			png(file, width = 1500, height = 1000)
+			png(file, width = input$barplot_width, height = input$barplot_height)
 		} else if (input$barplot_ext == "PDF") {
-			pdf(file, width = 1500, height = 1000)
+			pdf(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		} else if (input$barplot_ext == "SVG") {
-			svg(file, width = 15, height = 10)
+			svg(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		} else if (input$barplot_ext == "EPS") {
 			setEPS()
-			postscript(file)
+			postscript(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		}
-		print(barplot())
+		print(boxplot())
 		dev.off()
-	}
+	}	
 )
 
 # Initialize barplot variable
@@ -109,12 +123,13 @@ observeEvent(input$build_barplot, {
 		)
 	) +
 	geom_bar(
-		stat = "identity"
+		stat = "identity",
+		fill = "steelblue"
 	) +
 	geom_errorbar(
 		aes(
-			ymin=mean_TPMs-sd_TPMs, 
-			ymax=mean_TPMs+sd_TPMs
+			ymin = mean_TPMs-sd_TPMs, 
+			ymax = mean_TPMs+sd_TPMs
 		), 
 		width=.2,
         position=position_dodge(.9)

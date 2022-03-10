@@ -11,7 +11,7 @@ observeEvent(input$build_heatmap, {
 				)
 			),
 			fluidRow(
-				column(8),
+				column(6),
 				column(2,
 	    			selectInput(
 	        			inputId = "heatmap_ext",
@@ -19,6 +19,20 @@ observeEvent(input$build_heatmap, {
 	                	choices = c("PNG", "PDF", "SVG", "EPS"),
 	                	width = "200px"
 	    			)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "heatmap_width",
+    	    			label = "Width (px)",
+        	        	value = 1500
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "heatmap_height",
+    	    			label = "Heigth (px)",
+        	        	value = 1000
+					)
 				),
 				column(2,
 					br(),
@@ -45,14 +59,14 @@ output$heatmap_file <- downloadHandler (
 	},
 	content = function(file) {
 		if (input$heatmap_ext == "PNG"){
-			png(file, width = 1500, height = 1000)
+			png(file, width = input$heatmap_width, height = input$heatmap_height)
 		} else if (input$heatmap_ext == "PDF") {
-			pdf(file, width = 1500, height = 1000)
+			pdf(file, width = input$heatmap_width/100, height = input$heatmap_height/100)
 		} else if (input$heatmap_ext == "SVG") {
-			svg(file, width = 15, height = 10)
+			svg(file, width = input$heatmap_width/100, height = input$heatmap_height/100)
 		} else if (input$heatmap_ext == "EPS") {
 			setEPS()
-			postscript(file)
+			postscript(file, width = input$heatmap_width/100, height = input$heatmap_height/100)
 		}
 		print(heatmap())
 		dev.off()

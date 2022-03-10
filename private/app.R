@@ -38,7 +38,6 @@ ui <- tagList(
 				menuItem("Table", tabName = "table_tab", icon = icon("table")),
 				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
 				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
-				#menuItem("Dotplot", tabName = "dotplot_tab", icon = icon("chart-bar")),
 				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar")),
 				menuItem("Import new data", tabName = "import_tab", icon = icon("file-import"))			)
 		),
@@ -51,7 +50,6 @@ ui <- tagList(
 				source("table_ui.R", local = TRUE)$value,
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
-				source("dotplot_ui.R", local = TRUE)$value,
 				source("heatmap_ui.R", local = TRUE)$value,
 				source("import_ui.R", local = TRUE)$value				
 			)
@@ -65,30 +63,38 @@ ui <- tagList(
 # Server function
 server <- function(input, output, session){
 
+	# Variable Initialisation
+	genes_data_table <- reactiveVal()
+	samples_data_table <- reactiveVal()
+	tpms_data_table <- reactiveVal()
+	final_table <- reactiveVal()
+
 	# TODO : Render error in case of missing input file
     # Assign default data
-    if(!is.null(genes_data_input)){
-    	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
-    }
-    if(!is.null(samples_data_input)){
-		samples_data_file <- getDataFrameFromFile(samples_data_input)
-		if("private" %in% tolower(colnames(samples_data_file))){
-			# If public instance, took of private sample data
-			if(instance_tag == "public"){
-				samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
-			}
-			# Remove private column from the table
-			samples_data_file["private"] <- NULL
-		}
-		samples_data_table <- reactiveVal(value=samples_data_file)
+    if(exists("genes_data_input")){
+	    if(!is.null(genes_data_input)){
+	    	genes_data_table <- reactiveVal(value=getDataFrameFromFile(genes_data_input))
+	    }
 	}
-    if(!is.null(tpms_input)){
-		tpms_data_table <- reactiveVal(getDataFrameFromFile(tpms_input))
+	if(exists("samples_data_input")){
+	    if(!is.null(samples_data_input)){
+			samples_data_file <- getDataFrameFromFile(samples_data_input)
+			if("private" %in% tolower(colnames(samples_data_file))){
+				# If public instance, took of private sample data
+				if(instance_tag == "public"){
+					samples_data_file <- samples_data_file[toupper(samples_data_file[,"private"]) == "FALSE",]
+				}
+				# Remove private column from the table
+				samples_data_file["private"] <- NULL
+			}
+			samples_data_table <- reactiveVal(value=samples_data_file)
+		}
+	}
+	if(exists("tpms_input")){
+	    if(!is.null(tpms_input)){
+			tpms_data_table <- reactiveVal(getDataFrameFromFile(tpms_input))
+    	}
     }
-
-	# Variable Initialisation
-	final_table <- reactiveVal()
-	genes_list <- reactiveVal(value=NULL)
 
 	observe ({
 		# Remove private samples in tpms file

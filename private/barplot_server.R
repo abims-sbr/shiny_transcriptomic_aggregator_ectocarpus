@@ -23,13 +23,27 @@ observeEvent(input$build_barplot, {
 				)
 			),
 			fluidRow(
-				column(8),
+				column(6),
 				column(2,
 			    	selectInput(
 	        			inputId = "barplot_ext",
     	    			label = "Download format :",
         	        	choices = c("PNG", "PDF", "SVG", "EPS"),
             	    	width = "200px"
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "barplot_width",
+    	    			label = "Width (px)",
+        	        	value = 1500
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "barplot_height",
+    	    			label = "Heigth (px)",
+        	        	value = 1000
 					)
 				),
 				column(2,
@@ -58,18 +72,18 @@ output$barplot_file <- downloadHandler (
 	},
 	content = function(file){
 		if (input$barplot_ext == "PNG"){
-			png(file, width = 1500, height = 1000)
+			png(file, width = input$barplot_width, height = input$barplot_height)
 		} else if (input$barplot_ext == "PDF") {
-			pdf(file, width = 1500, height = 1000)
+			pdf(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		} else if (input$barplot_ext == "SVG") {
-			svg(file, width = 15, height = 10)
+			svg(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		} else if (input$barplot_ext == "EPS") {
 			setEPS()
-			postscript(file)
+			postscript(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		}
-		print(barplot())
+		print(boxplot())
 		dev.off()
-	}
+	}	
 )
 
 # Initialize barplot variable
@@ -88,13 +102,15 @@ observeEvent(input$build_barplot, {
 		names(barplot_table)[3] <- "sd_TPMs"
 		x <- "samples_id"
 	} else if (input$xaxis == "Condition"){
-		mean_tpms <- data.frame(colMeans(barplot_data)) #table with sample name and tpm mean by sample
+		mean_tpms <- data.frame(sapply(barplot_data, mean)) #table with sample name and tpm mean by sample
+		sd_tpms <- data.frame(sapply(barplot_data, sd))
 		samples_id <- rownames(mean_tpms)
 		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% samples_id)
 		rownames(mean_tpms) <- NULL
-		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms)
+		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms, sd_tpms)
 		names(mean_metadata)[3] <- "mean_TPMs"
-		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=sd(mean_TPMs))
+		names(mean_metadata)[4] <- "sd_TPMs"
+		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=mean(sd_TPMs))
 		x <- input$barplot_metadata
 	}
 
@@ -107,12 +123,13 @@ observeEvent(input$build_barplot, {
 		)
 	) +
 	geom_bar(
-		stat = "identity"
+		stat = "identity",
+		fill = "steelblue"
 	) +
 	geom_errorbar(
 		aes(
-			ymin=mean_TPMs-sd_TPMs, 
-			ymax=mean_TPMs+sd_TPMs
+			ymin = mean_TPMs-sd_TPMs, 
+			ymax = mean_TPMs+sd_TPMs
 		), 
 		width=.2,
         position=position_dodge(.9)
@@ -125,6 +142,7 @@ observeEvent(input$build_barplot, {
 		colour = "white"
 	) +
 	xlab(x) +
+	theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
 	ylab("mean(TPMs)")
 
 	# Fill the barplot reactive variable with the plot

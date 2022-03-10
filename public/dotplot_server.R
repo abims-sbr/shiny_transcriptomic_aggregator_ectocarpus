@@ -35,22 +35,22 @@ observeEvent(input$build_dotplot, {
 				column(8),
 				column(2,
 					selectInput(
-		    			inputId = "dotplot_ext",
-		    			label = "Download format :",
-		            	choices = c("PNG", "PDF", "SVG", "EPS"),
-		            	width = "200px"
+					inputId = "dotplot_ext",
+					label = "Download format :",
+					choices = c("PNG", "PDF", "SVG", "EPS"),
+					width = "200px"
 					)
 				),
 				column(2,
 					br(),
-			    	downloadButton(
-			    		outputId = "dotplot_file",
-			    		label = "Download",
-			    		class = "btn btn-primary",
-			    		width = "100%"
+					downloadButton(
+					outputId = "dotplot_file",
+					label = "Download",
+					class = "btn btn-primary",
+					width = "100%"
 					)
-		    	)
-		    )
+				)
+		        )
 		)
 	})
 })
@@ -69,7 +69,7 @@ output$dotplot <- downloadHandler (
 		if (input$dotplot_ext == "PNG"){
 			png(file, width = 1500, height = 1000)
 		} else if (input$dotplot_ext == "PDF") {
-			pdf(file, width = 1500, height = 1000)
+			pdf(file, width = 15, height = 10)
 		} else if (input$dotplot_ext == "SVG") {
 			svg(file, width = 15, height = 10)
 		} else if (input$dotplot_ext == "EPS") {
@@ -82,7 +82,7 @@ output$dotplot <- downloadHandler (
 )
 
 dotplot <- reactiveVal()
-# TODO : aes x and y not work
+
 observeEvent(input$build_dotplot, {
 
 	dotplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
@@ -91,20 +91,13 @@ observeEvent(input$build_dotplot, {
 		data = dotplot_data,
 		aes(
 			x = log2(get(input$dotplot_sample_x)),
-			y = log2(get(input$dotplot_sample_y))#,
-			#fill = dotplot_data[,1]
+			y = log2(get(input$dotplot_sample_y))
 		)
 	) +
-	geom_dotplot(
-		binaxis = 'y',
-		stackdir = 'center',
-		dotsize = 0.5
-	) +
-	scale_color_brewer(palette = "Set1")
+	geom_point(size=0.5) +
 	#ggtitle("Dotplot") +
 	xlab(paste0(input$dotplot_sample_x, " (log2(TPM))")) +
-	ylab(paste0(input$dotplot_sample_y, " (log2(TPM))")) +
-	guides(fill=guide_legend(title="Genes"))
+	ylab(paste0(input$dotplot_sample_y, " (log2(TPM))")) #+
 
 	dotplot(plot)
 })

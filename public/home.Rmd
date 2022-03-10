@@ -14,4 +14,31 @@ Shiny Transcriptomic Aggregator is a web-based application designed to explore R
 The application consists of several tabs allowing users to easily import, analyze, visualize and explore RNA Seq data.
 
 Some examples of Shiny Transcriptomic Aggregator graphic output are 
-shown below
+shown below.
+
+<br>
+
+<div class="col-md-4">
+	<div class="box box-solid box-primary">
+		<div class="box-header">Barplot</div>
+		<div class="box-body">
+			<img src="www/barplot.png" style="width: 100%"/>
+		</div>
+	</div>
+</div>
+<div class="col-md-4">
+	<div class="box box-solid box-primary">
+		<div class="box-header">Boxplot</div>
+		<div class="box-body">
+			<img src="www/boxplot.png" style="width: 100%"/>
+		</div>
+	</div>
+</div>
+<div class="col-md-4">
+	<div class="box box-solid box-primary">
+		<div class="box-header">Heatmap</div>
+		<div class="box-body">
+			<img src="www/heatmap.png" style="width: 100%"/>
+		</div>
+	</div>
+</div>

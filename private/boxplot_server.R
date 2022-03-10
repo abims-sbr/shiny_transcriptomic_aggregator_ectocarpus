@@ -13,7 +13,7 @@ output$metadata_sample_col <- renderUI({
 		selectInput(
 			inputId = "meta_sample_col",
 			label = "Color by :",
-			choices = subset(samples_inputs(), !(samples_inputs() %in% input$meta_sample_x))
+			choices = samples_inputs()
 		)
 	)
 })
@@ -31,7 +31,7 @@ output$metadata_gene_col <- renderUI({
 		selectInput(
 			inputId = "meta_gene_col",
 			label = "Color by :",
-			choices = subset(genes_inputs(), !(genes_inputs() %in% input$meta_gene_x))
+			choices = genes_inputs()
 		)
 	)
 })
@@ -50,13 +50,27 @@ observeEvent(input$build_boxplot, {
 				)
 			),
 			fluidRow(
-				column(8),
+				column(6),
 				column(2,
 			    	selectInput(
 	        			inputId = "boxplot_ext",
     	    			label = "Download format :",
         	        	choices = c("PNG", "PDF", "SVG", "EPS"),
             	    	width = "200px"
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "boxplot_width",
+    	    			label = "Width (px)",
+        	        	value = 1500
+					)
+				),
+				column(1,
+			    	numericInput(
+	        			inputId = "boxplot_height",
+    	    			label = "Heigth (px)",
+        	        	value = 1000
 					)
 				),
 				column(2,
@@ -85,14 +99,14 @@ output$boxplot_file <- downloadHandler (
 	},
 	content = function(file){
 		if (input$boxplot_ext == "PNG"){
-			png(file, width = 1500, height = 1000)
+			png(file, width = input$boxplot_width, height = input$boxplot_height)
 		} else if (input$boxplot_ext == "PDF") {
-			pdf(file, width = 1500, height = 1000)
+			pdf(file, width = input$boxplot_width/100, height = input$boxplot_height/100)
 		} else if (input$boxplot_ext == "SVG") {
-			svg(file, width = 15, height = 10)
+			svg(file, width = input$boxplot_width/100, height = input$boxplot_height/100)
 		} else if (input$boxplot_ext == "EPS") {
 			setEPS()
-			postscript(file)
+			postscript(file, width = input$boxplot_width/100, height = input$boxplot_height/100)
 		}
 		print(boxplot())
 		dev.off()
@@ -108,7 +122,6 @@ observeEvent(input$build_boxplot, {
 	boxplot_data <- final_table()[!(colnames(final_table()) %in% colnames(genes_data_table()))]
 
 	if (input$metadata == "Genes") {
-
 		x <- input$meta_gene_x
 		col <- input$meta_gene_col
 
@@ -148,6 +161,7 @@ observeEvent(input$build_boxplot, {
 	scale_color_brewer(palette = "Set1") +
 	#ggtitle("Boxplot") +
 	xlab(paste0(x)) +
+	theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
 	ylab("log2(TPM)") +
 	guides(fill=guide_legend(title=paste0(col)))
 	
