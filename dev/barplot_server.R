@@ -12,49 +12,51 @@ output$barplot_metadata_ui <- renderUI({
 # Create graph and download button after clicking on visualize button
 observeEvent(input$build_barplot, {
 	output$barplot_visualize <- renderUI({
-		box(
-			title = "Barplot",
-			status = "primary",
-			solidHeader = TRUE,
-			width = 12,
-			fluidRow(
-				plotOutput(
-					outputId = "barplot"
+		fluidRow(
+			box(
+				title = "Barplot",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				jqui_resizable(
+					plotOutput(
+						outputId = "barplot"
+					)
+				),
+				fluidRow(
+					column(6),
+					column(2,
+				    	selectInput(
+		        			inputId = "barplot_ext",
+	    	    			label = "Download format :",
+	        	        	choices = c("PNG", "PDF", "SVG", "EPS"),
+	            	    	width = "200px"
+						)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "barplot_width",
+	    	    			label = "Width (px)",
+	        	        	value = 1500
+						)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "barplot_height",
+	    	    			label = "Heigth (px)",
+	        	        	value = 1000
+						)
+					),
+					column(2,
+						br(),
+						downloadButton(
+				    		outputId = "barplot_file",
+				    		label = "Download",
+				    		class = "btn btn-primary",
+			    			width = "100%"
+	    				)
+	    			)
 				)
-			),
-			fluidRow(
-				column(6),
-				column(2,
-			    	selectInput(
-	        			inputId = "barplot_ext",
-    	    			label = "Download format :",
-        	        	choices = c("PNG", "PDF", "SVG", "EPS"),
-            	    	width = "200px"
-					)
-				),
-				column(1,
-			    	numericInput(
-	        			inputId = "barplot_width",
-    	    			label = "Width (px)",
-        	        	value = 1500
-					)
-				),
-				column(1,
-			    	numericInput(
-	        			inputId = "barplot_height",
-    	    			label = "Heigth (px)",
-        	        	value = 1000
-					)
-				),
-				column(2,
-					br(),
-					downloadButton(
-			    		outputId = "barplot_file",
-			    		label = "Download",
-			    		class = "btn btn-primary",
-		    			width = "100%"
-    				)
-    			)
 			)
 		)
 	})

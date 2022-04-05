@@ -30,13 +30,13 @@ output$samples_filters <- renderUI({
 		      	})
 			),
 			fluidRow(
-				column(9),
 				column(3,
 					actionButton(
 						inputId = "reset_samples_values",
 						label = "Reset sample filters" 
 					)
-				)
+				),
+				column(9)
 			)				
 		)
 	)
@@ -98,13 +98,13 @@ output$genes_filters <- renderUI({
 				})
 			),
 			fluidRow(
-				column(9),
 				column(3,
 					actionButton(
 						inputId = "reset_genes_values",
 						label = "Reset gene filters" 
 					)
-				)
+				),				
+				column(9)
 			)
 		)
 	)

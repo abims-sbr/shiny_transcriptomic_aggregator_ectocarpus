@@ -1,49 +1,52 @@
 observeEvent(input$build_heatmap, {
 	output$heatmap_visualize <- renderUI({
-		box(
-			title = "Heatmap",
-			status = "primary",
-			solidHeader = TRUE,
-			width = 12,
-			fluidRow(
-				plotOutput(
-					outputId = "heatmap"
-				)
-			),
-			fluidRow(
-				column(6),
-				column(2,
-	    			selectInput(
-	        			inputId = "heatmap_ext",
-	        			label = "Export format :",
-	                	choices = c("PNG", "PDF", "SVG", "EPS"),
-	                	width = "200px"
-	    			)
-				),
-				column(1,
-			    	numericInput(
-	        			inputId = "heatmap_width",
-    	    			label = "Width (px)",
-        	        	value = 1500
+		fluidRow(
+			box(
+				title = "Heatmap",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				jqui_resizable(
+					plotOutput(
+						outputId = "heatmap"
 					)
 				),
-				column(1,
-			    	numericInput(
-	        			inputId = "heatmap_height",
-    	    			label = "Heigth (px)",
-        	        	value = 1000
+				fluidRow(
+					column(6),
+					column(2,
+		    			selectInput(
+		        			inputId = "heatmap_ext",
+		        			label = "Export format :",
+		                	choices = c("PNG", "PDF", "SVG", "EPS"),
+		                	width = "200px"
+		    			)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "heatmap_width",
+	    	    			label = "Width (px)",
+	        	        	value = 1500
+						)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "heatmap_height",
+	    	    			label = "Heigth (px)",
+	        	        	value = 1000
+						)
+					),
+					column(2,
+						br(),
+		    			downloadButton(
+				    		outputId = "heatmap_file",
+				    		label = "Download",
+				    		class = "btn btn-primary",
+				    		width = "100%"
+		    			)
 					)
-				),
-				column(2,
-					br(),
-	    			downloadButton(
-			    		outputId = "heatmap_file",
-			    		label = "Heatmap",
-			    		width = "100%"
-	    			)
 				)
-			)
-    	)
+	    	)
+	    )
 	})
 })
 
@@ -75,7 +78,6 @@ output$heatmap_file <- downloadHandler (
 
 # Initialize heatmap variable
 heatmap <- reactiveVal()
-# TODO : Build the plot only if a subset of genes is selected or warn the user there are lot of data or nb gene max (~100) ?
 # Build the plot clicking on the visualize button
 observeEvent(input$build_heatmap, {
 
@@ -93,7 +95,8 @@ observeEvent(input$build_heatmap, {
 		scale(heatmap_matrix, center=TRUE, scale=TRUE),
 		color=color_palette,
 		scale="row",
-		angle_col="45"
+		angle_col="45",
+		cellheight=10
 	)
 	heatmap(plot)
 })

@@ -39,49 +39,52 @@ output$metadata_gene_col <- renderUI({
 # Create graph and download button after clicking on visualize button
 observeEvent(input$build_boxplot, {
 	output$boxplot_visualize <- renderUI({
-		box(
-			title = "Boxplot",
-			status = "primary",
-			solidHeader = TRUE,
-			width = 12,
-			fluidRow(
-				plotOutput(
-					outputId = "boxplot"
+		fluidRow(
+			box(
+				title = "Boxplot",
+				status = "primary",
+				solidHeader = TRUE,
+				width = 12,
+				height = "100%",
+				jqui_resizable(
+					plotOutput(
+						outputId = "boxplot"
+					)
+				),
+				fluidRow(
+					column(6),
+					column(2,
+				    	selectInput(
+		        			inputId = "boxplot_ext",
+	    	    			label = "Download format :",
+	        	        	choices = c("PNG", "PDF", "SVG", "EPS"),
+	            	    	width = "200px"
+						)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "boxplot_width",
+	    	    			label = "Width (px)",
+	        	        	value = 1500
+						)
+					),
+					column(1,
+				    	numericInput(
+		        			inputId = "boxplot_height",
+	    	    			label = "Heigth (px)",
+	        	        	value = 1000
+						)
+					),
+					column(2,
+						br(),
+						downloadButton(
+				    		outputId = "boxplot_file",
+				    		label = "Download",
+				    		class = "btn btn-primary",
+			    			width = "100%"
+	    				)
+	    			)
 				)
-			),
-			fluidRow(
-				column(6),
-				column(2,
-			    	selectInput(
-	        			inputId = "boxplot_ext",
-    	    			label = "Download format :",
-        	        	choices = c("PNG", "PDF", "SVG", "EPS"),
-            	    	width = "200px"
-					)
-				),
-				column(1,
-			    	numericInput(
-	        			inputId = "boxplot_width",
-    	    			label = "Width (px)",
-        	        	value = 1500
-					)
-				),
-				column(1,
-			    	numericInput(
-	        			inputId = "boxplot_height",
-    	    			label = "Heigth (px)",
-        	        	value = 1000
-					)
-				),
-				column(2,
-					br(),
-					downloadButton(
-			    		outputId = "boxplot_file",
-			    		label = "Download",
-			    		class = "btn btn-primary",
-		    			width = "100%"
-    				)
-    			)
 			)
 		)
 	})
