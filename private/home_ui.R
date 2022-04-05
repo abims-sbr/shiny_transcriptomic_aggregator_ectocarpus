@@ -1,7 +1,7 @@
 tabItem(tabName = "home_tab",
 	fluidRow(
 		box(
-			title="User guide",
+			title="Home",
 			status = "primary",
 			solidHeader = TRUE,
 			width = 12,

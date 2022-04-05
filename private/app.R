@@ -14,6 +14,7 @@ library(DT)
 library(ggplot2)
 library(pheatmap)
 library(RColorBrewer)
+library(shinyjqui)
 # Data manipulation
 library(data.table)
 library(reshape)
