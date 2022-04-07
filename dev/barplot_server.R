@@ -104,12 +104,15 @@ observeEvent(input$build_barplot, {
 		names(barplot_table)[3] <- "sd_TPMs"
 		x <- "samples_id"
 	} else if (input$xaxis == "Condition"){
-		mean_tpms <- data.frame(sapply(barplot_data, mean)) #table with sample name and tpm mean by sample
-		sd_tpms <- data.frame(sapply(barplot_data, sd))
-		samples_id <- rownames(mean_tpms)
-		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% samples_id)
-		rownames(mean_tpms) <- NULL
-		mean_metadata <- cbind(samples_id, sample_data[input$barplot_metadata], mean_tpms, sd_tpms)
+		mean_data <- data.frame(sapply(barplot_data, mean))
+		mean_tpms <- mean_data[order(row.names(mean_data)),,drop=FALSE]
+		sd_data <- data.frame(sapply(barplot_data, sd))
+		sd_tpms <- sd_data[order(row.names(sd_data)),,drop=FALSE]
+
+		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% colnames(barplot_data))
+		sample_data_sorted <- sample_data[order(sample_data$sample_id),]
+
+		mean_metadata <- cbind(sample_data_sorted["sample_id"], sample_data_sorted[input$barplot_metadata], mean_tpms, sd_tpms)
 		names(mean_metadata)[3] <- "mean_TPMs"
 		names(mean_metadata)[4] <- "sd_TPMs"
 		barplot_table <- ddply(mean_metadata, input$barplot_metadata, summarise, mean_TPMs=mean(mean_TPMs), sd_TPMs=mean(sd_TPMs))
