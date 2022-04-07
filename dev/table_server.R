@@ -213,23 +213,18 @@ output$table <- renderDT({
 	final_table()
 },
 	rownames = FALSE,
-    extensions = c("Buttons", "FixedHeader"),
+    extensions = c("Buttons"),
     options = list(
     	dom = 'Blfrtip',
     	order = list(0, 'asc'),
-    	fixedHeader = TRUE,
     	pageLength = 10,
 			lengthMenu = list(c(10, 15, 25, 50, 100, 200, -1),list("10", "15", "25","50","100","200","all")),
         scrollX = TRUE,
         buttons = list(
-        	'copy', 'csv', 'excel', 'print',
-        	list(extend = "pdf",
-        		pageSize="A4",
-        		filename = "table",
-        		header=TRUE,
-        		title=NULL,
-        		orientation="landscape"
-        	)
+        	'copy', 'print',
+        	list(extend = "csv",pageSize="A4",filename = "table",header=TRUE,title=NULL,orientation="landscape"),
+        	list(extend = "excel",pageSize="A4",filename = "table",header=TRUE,title=NULL,orientation="landscape"),
+        	list(extend = "pdf",pageSize="A4",filename = "table",header=TRUE,title=NULL,orientation="landscape")
         )
     )
 )
