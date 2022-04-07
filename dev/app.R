@@ -65,7 +65,7 @@ ui <- tagList(
 	),
 	# Footer
 	tags$footer(
-		"Copyright (c) 2018-2019 - Station Biologique de Roscoff - ABiMS"
+		"Copyright (c) 2018-2022 - Station Biologique de Roscoff - ABiMS"
 	)
 )
 # Server function
