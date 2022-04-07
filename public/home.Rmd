@@ -9,7 +9,8 @@ runtime: shiny
 ---
 
 Shiny Transcriptomic Aggregator is a web-based application designed to explore RNA-seq data.
- The default dataset made available here is a collection of samples for the model brown alga Ectocarpus but the application can be run with any RNA-seq dataset provided using the "import new data" function.
+The default dataset made available here is a collection of samples for the model brown alga Ectocarpus but the application can be run with any RNA-seq dataset provided using the "import new data" function.
+The Ectocarpus RNA-seq data corresponds to multiple life cycle and developmental stages and to strains grown under different environmental conditions such as heat and salinity stresses.
 
 The application consists of several tabs allowing users to easily import, analyze, visualize and explore RNA Seq data.
 

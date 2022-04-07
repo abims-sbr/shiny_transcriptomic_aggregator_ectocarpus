@@ -26,7 +26,7 @@ tabItem(tabName = "table_tab",
 			uiOutput("samples_id_filter")
 		),
 		column(10,
-			DTOutput('table')
+			DTOutput("table")
 		)
 	)
 )

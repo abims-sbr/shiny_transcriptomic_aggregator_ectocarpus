@@ -36,11 +36,16 @@ ui <- tagList(
 			sidebarMenu(id = "tabs",
 				menuItem("Home", tabName = "home_tab", icon = icon("home")),
 				menuItem("User guide", tabName = "guide_tab", icon = icon("info-circle")),
+				menuItem(paste0(project, " datatables"), tabName = "data_tab", icon = icon("table"),
+					menuSubItem("Samples data", tabName = "samples_tab"),
+					menuSubItem("Genes data", tabName = "genes_tab")
+				),
 				menuItem("Table", tabName = "table_tab", icon = icon("table")),
 				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
 				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
 				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar")),
-				menuItem("Import new data", tabName = "import_tab", icon = icon("file-import"))			)
+				menuItem("Import new data", tabName = "import_tab", icon = icon("file-import"))
+			)
 		),
 		dashboardBody(
 			useShinyjs(),
@@ -48,6 +53,8 @@ ui <- tagList(
 			tabItems(
 				source("home_ui.R", local = TRUE)$value,
 				source("guide_ui.R", local = TRUE)$value,
+				source("samples_ui.R", local = TRUE)$value,
+				source("genes_ui.R", local = TRUE)$value,
 				source("table_ui.R", local = TRUE)$value,
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
@@ -58,7 +65,7 @@ ui <- tagList(
 	),
 	# Footer
 	tags$footer(
-		"Copyright (c) 2018-2019 - Station Biologique de Roscoff - ABiMS"
+		"Copyright (c) 2018-2022 - Station Biologique de Roscoff - ABiMS"
 	)
 )
 # Server function
@@ -107,6 +114,8 @@ server <- function(input, output, session){
 	})
 
 	source("import_server.R", local = TRUE)
+	source("samples_server.R", local = TRUE)
+	source("genes_server.R", local = TRUE)
 	source("table_server.R", local = TRUE)
 	source("barplot_server.R", local = TRUE)
 	source("boxplot_server.R", local = TRUE)

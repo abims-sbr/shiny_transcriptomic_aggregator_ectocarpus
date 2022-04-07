@@ -24,7 +24,7 @@ The table is a dynamic overview of your data. Many features are provided such as
 ## Charts
 ---
 
-4 charts are available :
+3 charts are available :
 
 - Barplot
 
@@ -41,6 +41,8 @@ Use the Visualize button to preview the generated graph. It can then be download
 You can import a new set of data using the file browsers in the "Import new data" tab.
 
 TPM, genes and samples data files are required in this case and should be constructed as follows :
+
+Avoid using hyphens (-) in your tables, underscores (_) are OK.
 
 - TPMs file (.csv)
 
