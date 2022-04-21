@@ -83,7 +83,7 @@ output$barplot_file <- downloadHandler (
 			setEPS()
 			postscript(file, width = input$barplot_width/100, height = input$barplot_height/100)
 		}
-		print(boxplot())
+		print(barplot())
 		dev.off()
 	}	
 )

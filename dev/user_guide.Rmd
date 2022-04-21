@@ -5,70 +5,117 @@ output: html_document
 runtime: shiny
 ---
 
-## Table
+<style type="text/css">
+  body{
+    font-size: 12pt;
+  }
+  figure { 
+    display: inline-block;
+  }
+</style>
+
+## RNAseq aggregator step by step
+---
+
+#### 1 - Take a look to the sample and gene tables in the "Ectocarpus datatables" tab.
+
+<img src="www/samples_data.png" width="49%"/> <img src="www/genes_data.png" width="49%"/> 
+
+#### 2 - Access to the "Table" tab to filter Ectocarpus data.
+
+<img src="www/table.png" width="49%"/>
+
+#### 3 - Select samples and/or genes filters and apply them with the "Apply filters" button.
+
+<img src="www/filtered_table.png" width="49%"/>
+
+#### 4 - Build a plot of the filtered data in the plots tab.
+
+<img src="www/filtered_barplot.png" width="49%"/> <img src="www/filtered_boxplot.png" width="49%"/>
+<img src="www/filtered_heatmap.png" width="49%"/>
+
+
+## Features
+---
+
+### Table
 ---
 
 The table is the main part of Shiny Transcriptomic Aggregator.
 
 It is used to analyze, visualize, explore and filter RNA Seq data.
 
-It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata. Below these panels are a collapsible sample list and the table. The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen. 
+It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata, that are generated automatically from sample and gene files columns. 
+Below these panels are a collapsible sample list and the table. 
+The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen.
 
-To apply filters, click on the "Apply filters" button next to the gene metadata filter panel. This will update the table.
+To apply filters, click on the "Apply filters" buttonin the upper right corner. This will update the table.
 
 The table is a dynamic overview of your data. Many features are provided such as searching, sorting or exporting for example.
 
 **It is the data in the displayed table that are used to build plots**
 
 
-## Charts
+### Charts
 ---
 
 3 charts are available :
 
-- Barplot
-
-- Boxplot
-
-- Heatmap
+<table>
+  <tr>
+    <td align="center">Barplot</td>
+    <td align="center">Boxplot</td>
+    <td align="center">Heatmap</td>
+  </tr>
+  <tr>
+    <td><img src="www/barplot.png" width="100%"/></td>
+    <td><img src="www/boxplot.png" width="100%"/></td>
+    <td><img src="www/heatmap.png" width="100%"/></td>
+  </tr>
+</table>
 
 Use the Visualize button to preview the generated graph. It can then be downloaded in different formats.
 
 
-## Import new data
+### Optional features
+---
+
+#### Import new data
 ---
 
 You can import a new set of data using the file browsers in the "Import new data" tab.
 
 TPM, genes and samples data files are required in this case and should be constructed as follows :
 
-Avoid using hyphens (-) in your tables, underscores (_) are OK.
-
-- TPMs file (.csv)
-
-	| gene_id*    | sample1   | sample2   | ... |
-	| ----------- | --------- | ----------| --- |
-	| (character) | (numeric) | (numeric) | ... |
-	| gene1       | TPM       | TPM       | ... |
-	| gene2       | TPM       | TPM       | ... |
-	| ...         |  ...      | ...       | ... |
-
 - Genes data file (.csv)
 
-	| gene_id*    | gene_metadata_1 | gene_metadata_2 | ... |
-	| ----------- | --------------- | --------------- | --- |
-	| (character) | (character)     | (character)     | ... |
-	| gene1       | value           | value           | ... |
-	| gene2       | value           | value           | ... |
-	| ...         |  ...            | ...             | ... |
+	| <u>gene_id*</u> | gene_metadata_1 | gene_metadata_2 | ... |
+	| --------------- | --------------- | --------------- | --- |
+	| (character)     | (character)     | (character)     | ... |
+	| gene1           | value           | value           | ... |
+	| gene2           | value           | value           | ... |
+	| ...             |  ...            | ...             | ... |
 
 - Samples data file (.csv)
 
-	| sample_id*  | sample_name | private   | sample_metadata_1 | sample_metadata_2 | ... |
-	| ------------| ----------- | --------- | ----------------- | ----------------- | --- |
-	| (character) | (character) | (boolean) | (character)       | (character)       | ... |
-	| sample1     | name        | TRUE      | value             | value             | ... |
-	| sample2     | name        | FALSE     | value             | value             | ... |
-	| ...         |  ...        | ...       | ...               | ...               | ... |
+	| <u>sample_id*</u> | <u>sample_name</u> | <u>private</u> | sample_metadata_1 | sample_metadata_2 | ... |
+	| ----------------- | ------------------ | -------------- | ----------------- | ----------------- | --- |
+	| (character)       | (character)        | (boolean)      | (character)       | (character)       | ... |
+	| sample1           | name               | TRUE           | value             | value             | ... |
+	| sample2           | name               | FALSE          | value             | value             | ... |
+	| ...               |  ...               | ...            | ...               | ...               | ... |
+
+- TPMs file (.csv)
+
+	| <u>gene_id*</u> | sample1   | sample2   | ... |
+	| -----------     | --------- | ----------| --- |
+	| (character)     | (numeric) | (numeric) | ... |
+	| gene1           | TPM       | TPM       | ... |
+	| gene2           | TPM       | TPM       | ... |
+	| ...             |  ...      | ...       | ... |
 
 *(&ast;) gene_id and sample_id should be unique*
+
+*(<u>underline</u>) Required*
+
+*Avoid using hyphens (-) in your tables, underscores (_) are OK.*
