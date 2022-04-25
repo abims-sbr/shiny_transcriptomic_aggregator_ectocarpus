@@ -29,7 +29,7 @@ runtime: shiny
 
 <img src="www/filtered_table.png" width="49%"/>
 
-#### 4 - Build a plot of the filtered data in the plots tab.
+#### 4 - Build a plot of the filtered data in the plots tab. **Plots are built from the data displayed in the table tab.**
 
 <img src="www/filtered_barplot.png" width="49%"/> <img src="www/filtered_boxplot.png" width="49%"/>
 <img src="www/filtered_heatmap.png" width="49%"/>
@@ -49,11 +49,12 @@ It consists in two collapsible filter panels at the top of the page, one for sam
 Below these panels are a collapsible sample list and the table. 
 The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen.
 
-To apply filters, click on the "Apply filters" buttonin the upper right corner. This will update the table.
+To apply filters, click on the "Apply filters" button in the upper right corner. This will update the table.
+
+You can reset the filters by pressing the different reset filters buttons. 
+Clicking on one of these buttons does not update the table. Don't forget to click on the "Apply filters" button afterwards.
 
 The table is a dynamic overview of your data. Many features are provided such as searching, sorting or exporting for example.
-
-**It is the data in the displayed table that are used to build plots**
 
 
 ### Charts
@@ -85,37 +86,137 @@ Use the Visualize button to preview the generated graph. It can then be download
 
 You can import a new set of data using the file browsers in the "Import new data" tab.
 
-TPM, genes and samples data files are required in this case and should be constructed as follows :
+Genes, samples and TPM data files are required in this case and should be constructed as follows :
 
 - Genes data file (.csv)
 
-	| <u>gene_id*</u> | gene_metadata_1 | gene_metadata_2 | ... |
-	| --------------- | --------------- | --------------- | --- |
-	| (character)     | (character)     | (character)     | ... |
-	| gene1           | value           | value           | ... |
-	| gene2           | value           | value           | ... |
-	| ...             |  ...            | ...             | ... |
+<table class = "table">
+	<thead>
+	  <tr>
+	  	<th><u>gene_id*</u></th>
+	  	<th>gene_metadata_1</th>
+	  	<th>gene_metadata_2</th>
+	  	<th>...</th>
+	  </tr>
+	 </thead>
+	 <tbody>
+	  <tr>
+	   <td>(character)</td>
+	   <td>(character)</td>
+	   <td>(character)</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>gene1</td>
+	   <td>value</td>
+	   <td>value</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>gene2</td>
+	   <td>value</td>
+	   <td>value</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	  </tr>
+  </tbody>
+</table>
 
 - Samples data file (.csv)
 
-	| <u>sample_id*</u> | <u>sample_name</u> | <u>private</u> | sample_metadata_1 | sample_metadata_2 | ... |
-	| ----------------- | ------------------ | -------------- | ----------------- | ----------------- | --- |
-	| (character)       | (character)        | (boolean)      | (character)       | (character)       | ... |
-	| sample1           | name               | TRUE           | value             | value             | ... |
-	| sample2           | name               | FALSE          | value             | value             | ... |
-	| ...               |  ...               | ...            | ...               | ...               | ... |
+<table class = "table">
+	<thead>
+	  <tr>
+	  	<th><u>sample_id*</u></th>
+	  	<th><u>sample_name</u></th>
+	  	<th><u>private</u></th>
+	  	<th>sample_metadata_1</th>
+	  	<th>sample_metadata_2</th>
+	  	<th>...</th>
+	  </tr>
+	 </thead>
+	 <tbody>
+	  <tr>
+	   <td>(character)</td>
+	   <td>(character)</td>
+	   <td>(boolean)</td>
+	   <td>(character)</td>
+	   <td>(character)</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>sample1</td>
+	   <td>name1_2</td>
+	   <td>TRUE</td>
+	   <td>value</td>
+	   <td>value</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>sample2</td>
+	   <td>name1_2</td>
+	   <td>FALSE</td>
+	   <td>value</td>
+	   <td>value</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	  </tr>	  
+  </tbody>
+</table>
 
 - TPMs file (.csv)
 
-	| <u>gene_id*</u> | sample1   | sample2   | ... |
-	| -----------     | --------- | ----------| --- |
-	| (character)     | (numeric) | (numeric) | ... |
-	| gene1           | TPM       | TPM       | ... |
-	| gene2           | TPM       | TPM       | ... |
-	| ...             |  ...      | ...       | ... |
+<table class = "table">
+	<thead>
+	  <tr>
+	  	<th><u>gene_id*</u></th>
+	  	<th>sample1</th>
+	  	<th>sample2</th>
+	  	<th>...</th>
+	  </tr>
+	 </thead>
+	 <tbody>
+	  <tr>
+	   <td>(character)</td>
+	   <td>(numeric)</td>
+	   <td>(numeric)</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>gene1</td>
+	   <td>TPM</td>
+	   <td>TPM</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>gene2</td>
+	   <td>TPM</td>
+	   <td>TPM</td>
+	   <td>...</td>
+	  </tr>
+	  <tr>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	   <td>...</td>
+	  </tr>
+  </tbody>
+</table>
 
 *(&ast;) gene_id and sample_id should be unique*
 
-*(<u>underline</u>) Required*
+*Columns <u>underlined</u> are required*
 
 *Avoid using hyphens (-) in your tables, underscores (_) are OK.*
