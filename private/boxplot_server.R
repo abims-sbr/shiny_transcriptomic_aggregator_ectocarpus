@@ -152,7 +152,7 @@ observeEvent(input$build_boxplot, {
 		data = melted_data,
 		aes(
 			x = as.character(get(x)),
-			y = log2(as.numeric(value)),
+			y = log2(as.numeric(value)+1),
 			fill = as.character(get(col))
 		)
 	) +
@@ -165,7 +165,7 @@ observeEvent(input$build_boxplot, {
 	#ggtitle("Boxplot") +
 	xlab(paste0(x)) +
 	theme(axis.text.x = element_text(angle = 45, vjust = 0.5)) +
-	ylab("log2(TPM)") +
+	ylab("log2(TPM)+1") +
 	guides(fill=guide_legend(title=paste0(col)))
 	
 	# Fill the boxplot reactive variable with the plot

@@ -91,12 +91,23 @@ observeEvent(input$build_heatmap, {
 		color_palette <- brewer.pal(10,input$color)
 	}
 
-	plot <- pheatmap(
-		scale(heatmap_matrix, center=TRUE, scale=TRUE),
-		color=color_palette,
-		scale="row",
-		angle_col="45",
-		cellheight=10
-	)
+	if(nrow(heatmap_matrix)>50){
+		plot <- pheatmap(
+			scale(heatmap_matrix, center=TRUE, scale=TRUE),
+			color=color_palette,
+			scale="row",
+			angle_col="45",
+			show_rownames = FALSE
+		)
+	} else {
+		plot <- pheatmap(
+			scale(heatmap_matrix, center=TRUE, scale=TRUE),
+			color=color_palette,
+			scale="row",
+			angle_col="45",
+			cellheight=10
+		)
+	}
+
 	heatmap(plot)
 })

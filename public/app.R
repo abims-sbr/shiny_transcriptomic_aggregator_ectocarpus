@@ -44,7 +44,10 @@ ui <- tagList(
 				menuItem("Barplot", tabName = "barplot_tab", icon = icon("chart-bar")),
 				menuItem("Boxplot", tabName = "boxplot_tab", icon = icon("chart-bar")),
 				menuItem("Heatmap", tabName = "heatmap_tab", icon = icon("chart-bar")),
-				menuItem("Import new data", tabName = "import_tab", icon = icon("file-import"))
+				hr(),
+				menuItem("Optional features", tabName = "features_tab",
+					menuSubItem("Import new data", tabName = "import_tab", icon = icon("file-import"))
+				)
 			)
 		),
 		dashboardBody(
@@ -59,7 +62,7 @@ ui <- tagList(
 				source("barplot_ui.R", local = TRUE)$value,
 				source("boxplot_ui.R", local = TRUE)$value,
 				source("heatmap_ui.R", local = TRUE)$value,
-				source("import_ui.R", local = TRUE)$value				
+				source("import_ui.R", local = TRUE)$value
 			)
 		)
 	),
