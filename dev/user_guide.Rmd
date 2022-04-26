@@ -56,6 +56,7 @@ Clicking on one of these buttons does not update the table. Don't forget to clic
 
 The table is a dynamic overview of your data. Many features are provided such as searching, sorting or exporting for example.
 
+<img src="www/table_features.png" width="49%"/>
 
 ### Charts
 ---
@@ -217,6 +218,6 @@ Genes, samples and TPM data files are required in this case and should be constr
 
 *(&ast;) gene_id and sample_id should be unique*
 
-*Columns <u>underlined</u> are required*
+*<u>Underlined</u> columns are required and should be named as above*
 
 *Avoid using hyphens (-) in your tables, underscores (_) are OK.*
