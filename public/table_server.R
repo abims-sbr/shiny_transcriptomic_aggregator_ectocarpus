@@ -261,7 +261,8 @@ observeEvent(input$apply_filters, {
 	    filtered_table <- lapply(1:length(genes_inputs()), function(i){
 	    	if (genes_inputs()[i] == "gene_id") {
 	    		if (input$gene_list != "") {
-	    			filtered_table <- subset(new_table, new_table[,i] %in% unlist(strsplit(input$gene_list, ",")))
+	    			genes <- gsub(" ", "", input$gene_list)
+	    			filtered_table <- subset(new_table, new_table[,i] %in% unlist(strsplit(genes, ",")))
 	    		} else {
 	    			filtered_table <- new_table
 	    		}
