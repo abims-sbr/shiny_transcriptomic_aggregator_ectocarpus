@@ -17,15 +17,15 @@ runtime: shiny
 ## RNAseq aggregator step by step
 ---
 
-#### 1 - Take a look to the sample and gene tables in the "Ectocarpus datatables" tab.
+#### 1 - Take a look to the sample and gene tables in the "*Ectocarpus* datatables" tab.
 
 <img src="www/samples_data.png" width="49%"/> <img src="www/genes_data.png" width="49%"/> 
 
-#### 2 - Access to the "Table" tab to filter Ectocarpus data.
+#### 2 - Access the "Table" tab to filter *Ectocarpus* data.
 
 <img src="www/table.png" width="49%"/>
 
-#### 3 - Select samples and/or genes filters and apply them with the "Apply filters" button.
+#### 3 - Select samples and/or genes filters and apply your selection with the "Apply filters" button.
 
 <img src="www/filtered_table.png" width="49%"/>
 
@@ -45,7 +45,7 @@ The table is the main part of Shiny Transcriptomic Aggregator.
 
 It is used to analyze, visualize, explore and filter RNA Seq data.
 
-It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata, that are generated automatically from sample and gene files columns. 
+It consists in two collapsible filter panels at the top of the page, one for sample metadata and the other for gene metadata, that are generated automatically from sample and gene file columns. 
 Below these panels are a collapsible sample list and the table. 
 The filter panels and the sample list allow selection and display of a subset of the table according to the filters chosen.
 
