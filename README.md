@@ -199,6 +199,7 @@ Logs are available in `/var/log/shiny-server`
 ```
 cd /srv/shiny-server/shiny_transcriptomic_aggregator_ectocarpus
 git pull origin master
+systemctl restart shiny-server
 ```
 
 ### Update data
