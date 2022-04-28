@@ -139,12 +139,16 @@ observeEvent(input$build_boxplot, {
 		
 		# Transpose table for samples metadata
 		tboxplot_data <- t(boxplot_data)
+		tboxplot_data_sorted <- tboxplot_data[order(row.names(tboxplot_data)),,drop=FALSE]
+
 		# Get filtered samples_data_table
-		samples_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% rownames(tboxplot_data))
+		sample_data <- subset(samples_data_table(), samples_data_table()[,"sample_id"] %in% rownames(tboxplot_data_sorted))
+		sample_data_sorted <- sample_data[order(sample_data$sample_id),]
+
 		# Rename columns by gene_id and rows by sample_name
-		colnames(tboxplot_data) <- final_table()[,"gene_id"]
+		colnames(tboxplot_data_sorted) <- final_table()[,"gene_id"]
 	
-		samples_for_boxplot <- cbind(samples_data[x],samples_data[col], tboxplot_data)
+		samples_for_boxplot <- cbind(sample_data_sorted[x],sample_data_sorted[col], tboxplot_data_sorted)
 		melted_data <- melt(setDT(samples_for_boxplot), id=c(as.character(x), as.character(col)))
 	}
 	# Build the plot with ggplot function
