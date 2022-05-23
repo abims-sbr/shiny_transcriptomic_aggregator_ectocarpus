@@ -93,7 +93,7 @@ observeEvent(input$build_heatmap, {
 
 	if(nrow(heatmap_matrix)>50){
 		plot <- pheatmap(
-			scale(heatmap_matrix, center=TRUE, scale=TRUE),
+			heatmap_matrix,
 			color=color_palette,
 			scale="row",
 			angle_col="45",
@@ -101,7 +101,7 @@ observeEvent(input$build_heatmap, {
 		)
 	} else {
 		plot <- pheatmap(
-			scale(heatmap_matrix, center=TRUE, scale=TRUE),
+			heatmap_matrix,
 			color=color_palette,
 			scale="row",
 			angle_col="45",
