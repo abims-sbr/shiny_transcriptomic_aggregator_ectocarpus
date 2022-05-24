@@ -95,7 +95,7 @@ observeEvent(input$build_heatmap, {
 		plot <- pheatmap(
 			heatmap_matrix,
 			color=color_palette,
-			scale="row",
+			scale="none",
 			angle_col="45",
 			show_rownames = FALSE
 		)
@@ -103,7 +103,7 @@ observeEvent(input$build_heatmap, {
 		plot <- pheatmap(
 			heatmap_matrix,
 			color=color_palette,
-			scale="row",
+			scale="none",
 			angle_col="45",
 			cellheight=10
 		)
