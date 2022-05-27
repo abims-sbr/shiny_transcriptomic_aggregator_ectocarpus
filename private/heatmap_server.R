@@ -86,9 +86,13 @@ observeEvent(input$build_heatmap, {
 	heatmap_matrix <- data.matrix(heatmap_data)
 
 	if(input$color == "YellowBlue"){
-		color_palette <- colorRampPalette(c("#FFCE00","#FFFFFF","#6B8BA3"))(100)
+		color_palette <- colorRampPalette(c("#6B8BA3","#FFFFFF","#FFCE00"))(100)
 	} else {
-		color_palette <- colorRampPalette(brewer.pal(10,input$color))(100)
+	    color_vector <- brewer.pal(10,input$color)
+	    if(input$color == "RdYlBu"){
+	        color_vector <- rev(color_vector)
+	    }
+		color_palette <- colorRampPalette(color_vector)(100)
 	}
 
 	if(nrow(heatmap_matrix)>50){
